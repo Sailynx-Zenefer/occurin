@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { Database } from "../../types/supabase";
 import supabase from "../config/supabaseclient";
 
-import EventCard from "../components/EventsCard";
+
 
 type EventState = Database['public']['Tables']['events']['Row'][] | null;
 
@@ -42,7 +42,7 @@ const NewsFeed = () => {
             <View style={styles.events}>
                 <View style={styles.eventsGrid}>
                     {events.map(event => (
-                        <EventCard key={event.event_id} event={event} />
+                        <p>{event.title}</p>
                     ))}
                 </View>
             </View>
