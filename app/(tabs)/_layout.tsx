@@ -1,8 +1,34 @@
 import { Tabs } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { PaperProvider, MD3LightTheme as DefaultTheme } from "react-native-paper";
 
+
+const theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+    //   primary: 'tomato',
+    //   primaryContainer: 'tomato',
+    //   onPrimary: 'tomato',
+    //   onPrimaryContainer: 'tomato',
+    //   secondary: 'yellow',
+    //   secondaryContainer: 'yellow',
+    //   onSecondary: 'yellow',
+    //   onSecondaryContainer: 'yellow',
+    //   tertiary: 'green',
+    //   tertiaryContainer: 'green',
+    //   onTertiary: 'green',
+    //   onTertiaryContainer: 'green',
+    //   background: 'purple',
+    //   onBackground: 'purple',
+    //   surface : 'blue',
+    //   onSurface: 'blue',
+    },
+  };
+  
 const TabsLayout = () => {
     return (
+        <PaperProvider theme ={theme}>
         <Tabs>
             <Tabs.Screen
                 name="index"
@@ -55,6 +81,7 @@ const TabsLayout = () => {
                 }}
             />
         </Tabs>
+        </PaperProvider>
     );
 };
 

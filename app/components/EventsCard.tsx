@@ -1,9 +1,9 @@
 import { View,StyleSheet } from "react-native"
 import { Database} from "../../types/supabase";
 
-type Event = Database['public']['Tables']['events']['Row'];
+type EventType = Database['public']['Tables']['events']['Row'];
 interface EventCardProps {
-    event: Event;
+    event: EventType;
   }
 
 const EventCard: React.FC<EventCardProps> = ({event}) => {

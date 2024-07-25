@@ -12,15 +12,18 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "jsEngine": "hermes",
       "supportsTablet": true
     },
     "android": {
+        "jsEngine": "hermes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
     },
     "web": {
+      "jsEngine": "hermes",
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
