@@ -15,6 +15,8 @@ import {
 import merge from "deepmerge";
 
 import { Colors } from "../constants/colors";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AlertsProvider } from "react-native-paper-alerts";
 
 const customDarkTheme = { ...MD3DarkTheme, colors: Colors.dark };
 const customLightTheme = { ...MD3LightTheme, colors: Colors.light };
@@ -34,12 +36,16 @@ export default function RootLayout() {
     colorScheme === "dark" ? CombinedDarkTheme : CombinedLightTheme;
 
   return (
-    <PaperProvider theme={paperTheme}>
-      <ThemeProvider value={paperTheme}>
-        <Stack>
-          <Stack.Screen name="(Tabs)" options={{ headerShown: false }} />
-        </Stack>
-      </ThemeProvider>
-    </PaperProvider>
+    <SafeAreaProvider>
+      <PaperProvider theme={paperTheme}>
+        <ThemeProvider value={paperTheme}>
+          <AlertsProvider>
+            <Stack>
+              <Stack.Screen name="(Tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </AlertsProvider>
+        </ThemeProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }

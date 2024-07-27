@@ -3,14 +3,16 @@ import { View, StyleSheet } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useEffect, useState } from "react";
 
-import { Database } from "../../../types/supabase";
-import supabase from "../../config/supabaseclient";
+import { Database } from "../../../types/supabaseTypes";
+import { supabase } from "../../lib/supabase";
 
 import EventCard from "../../components/EventsCard";
+import 'react-native-url-polyfill/auto'
 
 type EventState = Database["public"]["Tables"]["events"]["Row"][] | null;
 
 const NewsFeed = () => {
+  
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventState>(null);
 
@@ -31,15 +33,17 @@ const NewsFeed = () => {
     fetchEvents();
   }, []);
 
+
   return (
     <View>
+      
       <Text>Home Page</Text>
       {fetchError && <Text>{fetchError}</Text>}
       {events && (
         <View style={styles.events}>
           <View style={styles.eventsGrid}>
             {events.map((event) => (
-              <EventCard key={event.event_id} event={event} />
+              <EventCard key={event.id} event={event} />
             ))}
           </View>
         </View>

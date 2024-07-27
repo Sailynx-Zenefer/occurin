@@ -1,5 +1,5 @@
 import { View, StyleSheet } from "react-native";
-import { Database } from "../../types/supabase";
+import { Database } from "../../types/supabaseTypes";
 import { Card, Text } from "react-native-paper";
 
 type EventType = Database["public"]["Tables"]["events"]["Row"];
