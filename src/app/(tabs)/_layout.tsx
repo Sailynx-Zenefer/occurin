@@ -1,9 +1,10 @@
-import { Tabs } from "expo-router";
+import { Tabs } from 'expo-router';
+
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function TabsLayout() {
-  return (
 
+  return (
       <Tabs>
         <Tabs.Screen
           name="index"
@@ -46,10 +47,10 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="users/[id]"
+          name="profile"
           options={{
-            headerTitle: "User Page",
-            title: "User",
+            headerTitle: "Profile Page",
+            title: "Profile",
             tabBarIcon: ({ color }) => (
               <FontAwesome size={28} name="user-circle" color={color} />
             ),

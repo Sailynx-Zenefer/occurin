@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabaseClient } from '../config/supabase-client'
 import { StyleSheet, View, Alert } from 'react-native'
 import { Button, TextInput } from 'react-native-paper'
 import { Session } from '@supabase/supabase-js'
@@ -21,7 +21,7 @@ export default function Profile({ session }: { session: Session }) {
       setLoading(true)
       if (!session?.user) throw new Error('No user on the session!')
 
-      let { data, error, status } = await supabase
+      let { data, error, status } = await supabaseClient
         .from('profiles')
         .select(`created_at, updated_at, username, full_name, avatar_url, website, profile_role`)
         .eq('id', session?.user.id) 
@@ -73,7 +73,7 @@ export default function Profile({ session }: { session: Session }) {
         updated_at: new Date().toISOString() 
       }
 
-      let { error } = await supabase.from('profiles').upsert(updates)
+      let { error } = await supabaseClient.from('profiles').upsert(updates)
 
       if (error) {
         throw error
@@ -112,7 +112,7 @@ export default function Profile({ session }: { session: Session }) {
       </View>
 
       <View style={styles.verticallySpaced}>
-        <Button onPress={() => supabase.auth.signOut()} >
+        <Button onPress={() => supabaseClient.auth.signOut()} >
         "Sign Out"
         </Button>
       </View>

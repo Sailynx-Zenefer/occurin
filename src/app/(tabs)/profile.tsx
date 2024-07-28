@@ -1,26 +1,14 @@
 import { View } from "react-native";
 import Profile from "../../components/Profile";
-import { Session } from "@supabase/supabase-js";
-import { supabase } from "../../lib/supabase";
-import { useState, useEffect } from "react";
-import Auth from "../../components/Auth";
+import { useAuth} from "../../hooks/Auth";
+import { router } from "expo-router";
 
 const ProfilePage = () => {
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
+  const {session,user} = useAuth()
 
   return (
     <View>
-      {session && session.user ? <Profile key={session.user.id} session={session} /> : <Auth/>}
+      {!session || !user ? (<>{router.replace('/sign-in')}</>) : (<Profile key={user.id} session={session} /> ) }
     </View>
   );
 };

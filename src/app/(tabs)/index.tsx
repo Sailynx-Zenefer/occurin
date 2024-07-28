@@ -3,11 +3,12 @@ import { View, StyleSheet } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useEffect, useState } from "react";
 
-import { Database } from "../../../types/supabaseTypes";
-import { supabase } from "../../lib/supabase";
+import { Database } from "../../types/supabaseTypes";
+import { supabaseClient } from "../../config/supabase-client";
 
 import EventCard from "../../components/EventsCard";
 import 'react-native-url-polyfill/auto'
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type EventState = Database["public"]["Tables"]["events"]["Row"][] | null;
 
@@ -18,7 +19,7 @@ const NewsFeed = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const { data, error } = await supabase.from("events").select();
+      const { data, error } = await supabaseClient.from("events").select();
 
       if (error) {
         setFetchError("could not fetch event");
@@ -35,7 +36,7 @@ const NewsFeed = () => {
 
 
   return (
-    <View>
+    <SafeAreaView>
       
       <Text>Home Page</Text>
       {fetchError && <Text>{fetchError}</Text>}
@@ -52,7 +53,7 @@ const NewsFeed = () => {
       <Button onPress={() => router.push("/users/2")}>
         <Text>Go to User 2</Text>
       </Button>
-    </View>
+    </SafeAreaView>
   );
 };
 

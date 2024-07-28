@@ -1,22 +1,24 @@
 import { Stack } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   PaperProvider,
   MD3LightTheme,
   MD3DarkTheme,
   adaptNavigationTheme,
 } from "react-native-paper";
-import { useColorScheme } from "react-native";
 import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { AuthProvider } from "../hooks/Auth";
+import { AlertsProvider } from "react-native-paper-alerts";
+import { useColorScheme } from "react-native";
 
 import merge from "deepmerge";
 
 import { Colors } from "../constants/colors";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AlertsProvider } from "react-native-paper-alerts";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const customDarkTheme = { ...MD3DarkTheme, colors: Colors.dark };
 const customLightTheme = { ...MD3LightTheme, colors: Colors.light };
@@ -40,9 +42,17 @@ export default function RootLayout() {
       <PaperProvider theme={paperTheme}>
         <ThemeProvider value={paperTheme}>
           <AlertsProvider>
-            <Stack>
-              <Stack.Screen name="(Tabs)" options={{ headerShown: false }} />
-            </Stack>
+            <AuthProvider>
+              <Stack>
+                <ProtectedRoute>
+                  <Stack.Screen
+                    name="(Tabs)"
+                    options={{ headerShown: false }}
+                  />
+                </ProtectedRoute>
+                <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+              </Stack>
+            </AuthProvider>
           </AlertsProvider>
         </ThemeProvider>
       </PaperProvider>
