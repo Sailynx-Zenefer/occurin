@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import { Text, TextInput, Button } from "react-native-paper";
-import { supabaseClient } from "../config/supabase-client";
+import { supabaseClient } from "../../config/supabase-client";
 import { Session } from "@supabase/supabase-js";
 import { useAlerts } from "react-native-paper-alerts";
 

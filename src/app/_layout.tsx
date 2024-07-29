@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Slot, Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   PaperProvider,
@@ -18,7 +18,6 @@ import { useColorScheme } from "react-native";
 import merge from "deepmerge";
 
 import { Colors } from "../constants/colors";
-import ProtectedRoute from "../components/ProtectedRoute";
 
 const customDarkTheme = { ...MD3DarkTheme, colors: Colors.dark };
 const customLightTheme = { ...MD3LightTheme, colors: Colors.light };
@@ -43,14 +42,8 @@ export default function RootLayout() {
         <ThemeProvider value={paperTheme}>
           <AlertsProvider>
             <AuthProvider>
-              <Stack>
-                <ProtectedRoute>
-                  <Stack.Screen
-                    name="(Tabs)"
-                    options={{ headerShown: false }}
-                  />
-                </ProtectedRoute>
-                <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(app)" options={{ headerShown: false }} />
               </Stack>
             </AuthProvider>
           </AlertsProvider>

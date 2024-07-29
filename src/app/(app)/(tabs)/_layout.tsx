@@ -1,10 +1,11 @@
-import { Tabs } from 'expo-router';
-
+import {Tabs} from 'expo-router';
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import ProtectedRoute from '../../../components/ProtectedRoute';
 
 export default function TabsLayout() {
 
   return (
+    <ProtectedRoute>
       <Tabs>
         <Tabs.Screen
           name="index"
@@ -57,5 +58,7 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
+      </ProtectedRoute>
   );
 };
+
