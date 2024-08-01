@@ -1,6 +1,5 @@
-import { Redirect, router } from "expo-router";
+import { Redirect } from "expo-router";
 import { useAuth } from "../hooks/Auth";
-import { useEffect, useState } from "react";
 
 const ProtectedRoute = ({ children }: any) => {
   const { user } = useAuth();

@@ -4,6 +4,15 @@ import { StyleSheet, View, Alert } from 'react-native'
 import { Button, TextInput } from 'react-native-paper'
 import { Session } from '@supabase/supabase-js'
 
+
+type ProfileUpdates = {
+  username: string
+  website: string
+  avatar_url: string
+  full_name: string,
+  profile_role: string,
+}
+
 export default function Profile({ session }: { session: Session }) {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
@@ -14,7 +23,7 @@ export default function Profile({ session }: { session: Session }) {
 
   useEffect(() => {
     if (session) getProfile()
-  }, [session])
+  }, [session,getProfile])
 
   async function getProfile() {
     try {
@@ -31,11 +40,11 @@ export default function Profile({ session }: { session: Session }) {
       }
 
       if (data) {
-        setUsername(data.username as string)
-        setWebsite(data.website as string)
-        setAvatarUrl(data.avatar_url as string)
-        setFullName(data.full_name as string)
-        setProfileRole(data.profile_role as string)
+        setUsername(data?.username || '')
+        setWebsite(data?.website || '')
+        setAvatarUrl(data?.avatar_url || '')
+        setFullName(data?.full_name || '')
+        setProfileRole(data?.profile_role || '')
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -52,13 +61,7 @@ export default function Profile({ session }: { session: Session }) {
     avatar_url,
     full_name,
     profile_role,
-  }: {
-    username: string
-    website: string
-    avatar_url: string
-    full_name: string,
-    profile_role: string,
-  }) {
+  }: ProfileUpdates) {
     try {
       setLoading(true)
       if (!session?.user) throw new Error('No user on the session!')

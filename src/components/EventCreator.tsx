@@ -1,21 +1,60 @@
-import { View, StyleSheet, Alert } from "react-native";
-import { useForm, Controller } from "react-hook-form";
+import { useState, useCallback, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { Button, Surface, Text, TextInput, Divider } from "react-native-paper";
+import { SegmentedButtons } from "react-native-paper";
+import type React from "../../node_modules/@types/react";
 import {
   DatePickerInput,
   TimePickerModal,
   enGB,
   registerTranslation,
 } from "react-native-paper-dates";
-import React from "react";
+import { useAlerts } from "react-native-paper-alerts";
+import { supabaseClient } from "../config/supabase-client";
+import { useAuth } from "../hooks/Auth";
+import NativePaperMapboxSearch from "./NativePaperMapboxSearch";
 registerTranslation("en-GB", enGB);
 
-type FormValues = {
+interface RHFormValues {
   eventName: string;
   eventDescription: string;
   eventBeginDate: Date;
   eventFinishDate: Date;
+  imgUrl: string;
+  inPerson: boolean;
+  location: RHFLocation;
+  ticketed: boolean;
+  ticketPrice: number;
+}
+
+type RHFLocation = {
+  name: string;
+  lat: number;
+  long: number;
+  address: string;
+  _option: OptionType;
 };
+
+type OptionType = {
+  label: string;
+  value: number;
+  description: string;
+};
+interface FormValues {
+  title: string;
+  description: string;
+  img_url: string;
+  in_person: boolean;
+  begin_time: string;
+  finish_time: string;
+  location_name: string;
+  location_lat: number;
+  location_long: number;
+  ticketed: boolean;
+  ticket_price: number;
+  creator_id: string;
+}
 
 interface TimePickerOutput {
   hours: number;
@@ -23,18 +62,22 @@ interface TimePickerOutput {
 }
 
 export default function EventCreator() {
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const alerts = useAlerts();
+
   function formatTime(date: Date) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
-  const [visibleBegin, setVisibleBegin] = React.useState(false);
-  const [visibleFinish, setVisibleFinish] = React.useState(false);
+  const [visibleBegin, setVisibleBegin] = useState(false);
+  const [visibleFinish, setVisibleFinish] = useState(false);
 
-  const onDismissBegin = React.useCallback(() => {
+  const onDismissBegin = useCallback(() => {
     setVisibleBegin(false);
   }, [setVisibleBegin]);
 
-  const onDismissFinish = React.useCallback(() => {
+  const onDismissFinish = useCallback(() => {
     setVisibleFinish(false);
   }, [setVisibleFinish]);
 
@@ -57,7 +100,7 @@ export default function EventCreator() {
     };
 
   const datePickOnChange =
-    (fieldName: keyof FormValues) => (newDate: Date | undefined) => {
+    (fieldName: keyof RHFormValues) => (newDate: Date | undefined) => {
       if (newDate) {
         const newMonthYear = getValues(fieldName) as Date;
         newMonthYear.setFullYear(newDate.getFullYear());
@@ -66,48 +109,85 @@ export default function EventCreator() {
       }
     };
 
-  React.useEffect(() => {
-    console.log(getValues("eventBeginDate").toISOString());
-    console.log(getValues("eventFinishDate").toISOString());
-    console.log(
-      getValues(),
-      "begin-->",
-      formatTime(getValues("eventBeginDate")),
-      "finish-->",
-      formatTime(getValues("eventFinishDate"))
-    );
-  }, []);
-
   const {
     control,
-    watch,
     handleSubmit,
-    formState: { errors, isSubmitSuccessful },
+    formState: { errors },
     setValue,
     getValues,
-  } = useForm<FormValues>({
+    watch,
+  } = useForm<RHFormValues>({
     mode: "onBlur",
     defaultValues: {
       eventName: "",
       eventDescription: "",
       eventBeginDate: new Date(),
       eventFinishDate: new Date(),
+      imgUrl: "",
+      inPerson: true,
+      location: {
+        name: "",
+        lat: 0,
+        long: 0,
+        address: "",
+        _option: {
+          label: "",
+          value: 0,
+          description: "",
+        },
+      },
+      ticketed: false,
+      ticketPrice: 0,
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log("Form Submitted", data);
-    Alert.alert("Form Submitted", JSON.stringify(data));
+  const onSubmit = async (RHForm: RHFormValues) => {
+    alerts.alert("Form completed", JSON.stringify(RHForm));
+    try {
+      setLoading(true);
+      if (!user) throw new Error("No user on the session!");
+
+      const SBform: FormValues = {
+        title: RHForm.eventName,
+        description: RHForm.eventDescription,
+        img_url: RHForm.imgUrl,
+        in_person: RHForm.inPerson,
+        begin_time: RHForm.eventBeginDate.toISOString(),
+        finish_time: RHForm.eventFinishDate.toISOString(),
+        location_name: RHForm.location.name,
+        location_lat: RHForm.location.lat,
+        location_long: RHForm.location.long,
+        ticketed: RHForm.ticketed,
+        ticket_price: RHForm.ticketPrice,
+        creator_id: user.id,
+      };
+
+      let { error } = await supabaseClient.from("profiles").insert(SBform);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        alerts.alert(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // React.useEffect(() => {
-  //     const subscription = watch((value) => {
-  //         console.log(value);
-  //     });
-  //     return () => subscription.unsubscribe();
-  // }, [watch]);
+  const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
 
-  // const watchForm = watch();
+
+  useEffect(() => {
+    const subscription = watch((value, { name, type }) =>
+      console.log(value, name, type)
+    )
+    return () => subscription.unsubscribe()
+  }, [watch])
+
+
+
   return (
     <View style={styles.eventCreator}>
       <Controller
@@ -144,9 +224,126 @@ export default function EventCreator() {
         )}
         name="eventDescription"
       />
-      <Divider/>
-      <Surface style={styles.datePickers}
-      elevation={1}>
+      <Divider />
+      <Controller
+        control={control}
+        rules={{ maxLength: 100 }}
+        render={({ field: { onChange, value } }) => (
+          <>
+            <Text>Does your event take place in person or is it online?</Text>
+            <SegmentedButtons
+              value={String(value)}
+              onValueChange={(newValue) =>
+                onChange(newValue === "true" ? true : false)
+              }
+              buttons={[
+                {
+                  value: "true",
+                  label: "In Person",
+                },
+                {
+                  value: "false",
+                  label: "Online",
+                },
+              ]}
+            />
+          </>
+        )}
+        name="inPerson"
+      />
+      <Divider />
+      <Controller
+        control={control}
+        rules={{ maxLength: 100 }}
+        render={({
+          field: {
+            onChange,
+            value: {
+              _option,
+              _option: { label },
+            },
+          },
+        }) => (
+          <View>
+            <Text>Where does your event take place?</Text>
+
+            {mapBoxToken ? (
+              <NativePaperMapboxSearch
+                accessToken={mapBoxToken}
+                options={{
+                  language: "en",
+                  country: "GB",
+                }}
+                onChangeTextAC={(searchText) => {
+                  if (searchText) {
+                    try {
+                      setValue("location._option.label", searchText);
+                    } catch (error) {
+                      console.error("setValue error:", error);
+                    }
+                  }
+                }}
+                onRetrieveSBRR={({
+                  features,
+                  features: [name_preferred, place_formatted, coordinates],
+                }) => {
+                  if (features) {
+                    try {
+                      if (name_preferred)
+                        setValue("location.name", `${name_preferred}`);
+                      if (place_formatted)
+                        setValue("location.address", `${place_formatted}`);
+                      if (coordinates)
+                      setValue("location.long", coordinates[0] || 0);
+                      setValue("location.lat", coordinates[1] || 0);
+
+                    } catch (error) {
+                      console.error("setValue error:", error);
+                    }
+                  }
+                }}
+                optionTextValue={_option}
+                placeholder={"Search for locations"}
+              />
+            ) : (
+              <Text>Mapbox token not provided</Text>
+            )}
+          </View>
+        )}
+        name="location"
+      />
+      {errors.location && (
+        <Text style={styles.errorText}>Please select a location?</Text>
+      )}
+      <Divider />
+      <Controller
+        control={control}
+        rules={{ maxLength: 100 }}
+        render={({ field: { onChange, value } }) => (
+          <>
+            <Text>Is your event ticketed?</Text>
+            <SegmentedButtons
+              value={String(value)}
+              onValueChange={(newValue) =>
+                onChange(newValue === "true" ? true : false)
+              }
+              buttons={[
+                {
+                  value: "true",
+                  label: "Ticketed",
+                },
+                {
+                  value: "false",
+                  label: "Not Ticketed",
+                },
+              ]}
+            />
+          </>
+        )}
+        name="ticketed"
+      />
+      <Text>Upload an image here</Text>
+      <Surface style={styles.datePickers} elevation={1}>
         <Controller
           control={control}
           rules={{
@@ -154,15 +351,15 @@ export default function EventCreator() {
           }}
           render={({ field }) => (
             <View>
-              <Surface  elevation={2}>
-              <Text>Event Start:</Text>
-              <Button
-                onPress={() => setVisibleBegin(true)}
-                uppercase={false}
-                mode="outlined"
-              >
-                {formatTime(field.value)}
-              </Button>
+              <Surface elevation={2}>
+                <Text>Event Start:</Text>
+                <Button
+                  onPress={() => setVisibleBegin(true)}
+                  uppercase={false}
+                  mode="outlined"
+                >
+                  {formatTime(field.value)}
+                </Button>
               </Surface>
               <TimePickerModal
                 visible={visibleBegin}
@@ -258,7 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    borderRadius:2,
+    borderRadius: 2,
     // padding: 5,
   },
   textInput: {

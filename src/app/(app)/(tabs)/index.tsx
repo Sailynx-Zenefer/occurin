@@ -1,7 +1,7 @@
 import { Link, router } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { Button, Text } from "react-native-paper";
-import { useEffect, useState } from "react";
+import React,{ useEffect, useState } from "react";
 
 import { Database } from "../../../types/supabaseTypes";
 import { supabaseClient } from "../../../config/supabase-client";
