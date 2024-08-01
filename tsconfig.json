@@ -1,6 +1,25 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  }
+    "baseUrl": "./",
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "./src/types"
+    ],
+    "lib": ["dom", "dom.iterable", "ES2020", "ESNext"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@types/react": ["./node_modules/@types/react"],
+    }
+  },
+  "esModuleInterop": true,
+  "moduleResolution": "nodenext",
+  "allowImportingTsExtensions": true,
+  "allowSyntheticDefaultImports": true,
+  "resolveJsonModule": true,
+  "isolatedModules": true,
+  "include": ["src/**/*","src","src/components/*"],
+  "exclude": ["dist"],
+  "extends": "expo/tsconfig.base"
 }
