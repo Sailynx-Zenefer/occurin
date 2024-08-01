@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { useForm, Controller, useWatch } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Button, Surface, Text, TextInput, Divider } from "react-native-paper";
 import { SegmentedButtons } from "react-native-paper";
 import type React from "../../node_modules/@types/react";
@@ -14,6 +14,7 @@ import { useAlerts } from "react-native-paper-alerts";
 import { supabaseClient } from "../config/supabase-client";
 import { useAuth } from "../hooks/Auth";
 import NativePaperMapboxSearch from "./NativePaperMapboxSearch";
+import CurrencyInput, { formatNumber } from "react-native-currency-input";
 registerTranslation("en-GB", enGB);
 
 interface RHFormValues {
@@ -137,7 +138,7 @@ export default function EventCreator() {
         },
       },
       ticketed: false,
-      ticketPrice: 0,
+      ticketPrice: 0
     },
   });
 
@@ -158,7 +159,7 @@ export default function EventCreator() {
         location_lat: RHForm.location.lat,
         location_long: RHForm.location.long,
         ticketed: RHForm.ticketed,
-        ticket_price: RHForm.ticketPrice,
+        ticket_price: Number(RHForm.ticketPrice),
         creator_id: user.id,
       };
 
@@ -178,15 +179,12 @@ export default function EventCreator() {
 
   const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
 
-
   useEffect(() => {
     const subscription = watch((value, { name, type }) =>
-      console.log(value, name, type)
-    )
-    return () => subscription.unsubscribe()
-  }, [watch])
-
-
+      console.log(value, name, type),
+    );
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
   return (
     <View style={styles.eventCreator}>
@@ -294,9 +292,8 @@ export default function EventCreator() {
                       if (place_formatted)
                         setValue("location.address", `${place_formatted}`);
                       if (coordinates)
-                      setValue("location.long", coordinates[0] || 0);
+                        setValue("location.long", coordinates[0] || 0);
                       setValue("location.lat", coordinates[1] || 0);
-
                     } catch (error) {
                       console.error("setValue error:", error);
                     }
@@ -342,7 +339,72 @@ export default function EventCreator() {
         )}
         name="ticketed"
       />
+
+      <Divider />
+      <Text>Ticket Price</Text>
+      <Controller
+        control={control}
+        rules={{
+          required: true,
+        }}
+        render={({
+          field: {
+            onChange,
+            value
+          },
+        }) => (
+          <>
+            {/* <TextInput
+              style={styles.textInput}
+              onChangeText={(priceText) => {
+                console.log(priceText);
+                if (priceText.length > 0) {
+                  const foundNumber = priceText.match(/\d+/g).join("");
+                  console.log("found", foundNumber);
+                  if (foundNumber.length > 0) {
+                    const display = formatNumber(+foundNumber, {
+                      separator: "",
+                      prefix: "£ ",
+                      precision: 2,
+                      delimiter: "",
+                      signPosition: "beforePrefix",
+                    });
+                    console.log("displ", display);
+                    onChange?.({
+                      numerical: onChange?.(parseInt(foundNumber, 100)),
+                      display: display,
+                    });
+                  }
+                }
+              }}
+              value={display}
+            /> */}
+            <CurrencyInput
+              value={value}
+              onChangeValue={onChange}
+              renderTextInput={({onChangeText,value}) => {
+                return (
+                <TextInput
+                onChangeText={onChangeText}
+                value={value}
+                placeholder="£ 0.00"                />
+                )
+              }}
+              prefix="£ "
+              delimiter="."
+              separator=","
+              precision={2}
+            />
+          </>
+        )}
+        name="ticketPrice"
+      />
+      {errors.ticketPrice && (
+        <Text style={styles.errorText}>Please enter a ticket price</Text>
+      )}
+
       <Text>Upload an image here</Text>
+
       <Surface style={styles.datePickers} elevation={1}>
         <Controller
           control={control}
