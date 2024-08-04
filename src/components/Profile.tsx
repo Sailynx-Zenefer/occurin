@@ -3,6 +3,9 @@ import { supabaseClient } from '../config/supabase-client'
 import { StyleSheet, View, Alert } from 'react-native'
 import { Button, TextInput } from 'react-native-paper'
 import { Session } from '@supabase/supabase-js'
+import AvatarUploader from './AvatarUploader'
+import { ScrollView } from 'react-native'
+import { useAlerts } from 'react-native-paper-alerts'
 
 
 type ProfileUpdates = {
@@ -20,40 +23,42 @@ export default function Profile({ session }: { session: Session }) {
   const [fullName, setFullName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [profileRole, setProfileRole] = useState('')
-
+  const alerts = useAlerts()
   useEffect(() => {
-    if (session) getProfile()
-  }, [session,getProfile])
-
-  async function getProfile() {
-    try {
-      setLoading(true)
-      if (!session?.user) throw new Error('No user on the session!')
-
-      let { data, error, status } = await supabaseClient
-        .from('profiles')
-        .select(`created_at, updated_at, username, full_name, avatar_url, website, profile_role`)
-        .eq('id', session?.user.id) 
-        .single()
-      if (error && status !== 406) {
-        throw error
+    async function getProfile() {
+      try {
+        setLoading(true)
+        if (!session?.user) throw new Error('No user on the session!')
+  
+        let { data, error, status } = await supabaseClient
+          .from('profiles')
+          .select(`created_at, updated_at, username, full_name, avatar_url, website, profile_role`)
+          .eq('id', session?.user.id) 
+          .single()
+        if (error && status !== 406) {
+          throw error
+        }
+  
+        if (data) {
+          setUsername(data?.username || '')
+          setWebsite(data?.website || '')
+          setAvatarUrl(data?.avatar_url || '')
+          setFullName(data?.full_name || '')
+          setProfileRole(data?.profile_role || '')
+        }
+      } catch (error) {
+        
+        if (error instanceof Error) {
+          Alert.alert("Error:",error.message)
+        }
+      } finally {
+        setLoading(false)
       }
-
-      if (data) {
-        setUsername(data?.username || '')
-        setWebsite(data?.website || '')
-        setAvatarUrl(data?.avatar_url || '')
-        setFullName(data?.full_name || '')
-        setProfileRole(data?.profile_role || '')
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message)
-      }
-    } finally {
-      setLoading(false)
     }
-  }
+
+    if (session) getProfile()
+  }, [session])
+
 
   async function updateProfile({
     username,
@@ -83,7 +88,7 @@ export default function Profile({ session }: { session: Session }) {
       }
     } catch (error) {
       if (error instanceof Error) {
-        Alert.alert(error.message)
+        alerts.alert(error.message)
       }
     } finally {
       setLoading(false)
@@ -91,7 +96,18 @@ export default function Profile({ session }: { session: Session }) {
   }
 
   return (
-    <View style={styles.container}>
+    
+    <ScrollView style={styles.container}>
+            <View>
+      <AvatarUploader
+        size={200}
+        url={avatarUrl}
+        onUpload={(url: string) => {
+          setAvatarUrl(url)
+          updateProfile({ username, website,full_name : fullName,profile_role : profileRole, avatar_url: avatarUrl })
+        }}
+      />
+    </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <TextInput label="Email" value={session?.user?.email} disabled />
       </View>
@@ -114,12 +130,14 @@ export default function Profile({ session }: { session: Session }) {
         </Button>
       </View>
 
+
+
       <View style={styles.verticallySpaced}>
         <Button onPress={() => supabaseClient.auth.signOut()} >
         "Sign Out"
         </Button>
       </View>
-    </View>
+    </ScrollView>
   )
 }
 

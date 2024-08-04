@@ -1,13 +1,19 @@
-import { Session, User } from '@supabase/supabase-js';
-import { useContext, useState, useEffect, createContext, ReactNode } from 'react';
-import { supabaseClient } from '../config/supabase-client';
+import { Session, User } from "@supabase/supabase-js";
+import {
+  useContext,
+  useState,
+  useEffect,
+  createContext,
+  ReactNode,
+} from "react";
+import { supabaseClient } from "../config/supabase-client";
 
 // Create a context for authentication
 
-const AuthContext = createContext<{ 
-  session: Session | null, 
-  user: User | null, 
-  signOut: () => void 
+const AuthContext = createContext<{
+  session: Session | null;
+  user: User | null;
+  signOut: () => void;
 }>({
   session: null,
   user: null,
@@ -21,26 +27,31 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState<boolean>(false);
+
   useEffect(() => {
     const setData = async () => {
       try {
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        const {
+          data: { session },
+          error,
+        } = await supabaseClient.auth.getSession();
         if (error) throw error;
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        setInitialized(true);
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error("Error getting session:", error);
       }
     };
 
-    
-    const { data: listener } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const { data: listener } = supabaseClient.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setInitialized(true);
+      },
+    );
 
     setData();
     return () => {
@@ -57,7 +68,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Use a provider to pass down the value
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {initialized && children}
     </AuthContext.Provider>
   );
 };

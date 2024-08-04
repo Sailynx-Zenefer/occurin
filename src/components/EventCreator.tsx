@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Surface, Text, TextInput, Divider } from "react-native-paper";
 import { SegmentedButtons } from "react-native-paper";
@@ -187,7 +187,7 @@ export default function EventCreator() {
   }, [watch]);
 
   return (
-    <View style={styles.eventCreator}>
+    <ScrollView contentContainerStyle={styles.eventCreator}>
       <Controller
         control={control}
         rules={{
@@ -493,7 +493,7 @@ export default function EventCreator() {
       >
         Submit
       </Button>
-    </View>
+    </ScrollView>
   );
 }
 

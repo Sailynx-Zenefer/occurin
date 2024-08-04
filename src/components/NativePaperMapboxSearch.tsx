@@ -119,7 +119,7 @@ export default function NativePaperMapboxSearch({
       session.removeEventListener("suggest", passSuggestionResponse);
       session.removeEventListener("retrieve", passRetrieveResponse);
     };
-  }, [onRetrieveSBRR, onSuggestSBSR, session]);
+  }, [onRetrieveSBRR, onSuggestSBSR, session,onSuggestError]);
 
   const handleSession = (searchText: string) => {
     try {

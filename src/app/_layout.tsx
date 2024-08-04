@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   PaperProvider,
   MD3LightTheme,
@@ -18,6 +17,7 @@ import { useColorScheme } from "react-native";
 import merge from "deepmerge";
 
 import { Colors } from "../constants/colors";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 const customDarkTheme = { ...MD3DarkTheme, colors: Colors.dark };
 const customLightTheme = { ...MD3LightTheme, colors: Colors.light };
@@ -28,8 +28,9 @@ const { LightTheme, DarkTheme } = adaptNavigationTheme({
 });
 
 const CombinedLightTheme = merge(LightTheme, customLightTheme);
-// const CombinedDarkTheme = merge(DarkTheme, customDarkTheme);
-const CombinedDarkTheme = merge(LightTheme, MD3LightTheme);
+const CombinedDarkTheme = merge(DarkTheme, customDarkTheme);
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -37,18 +38,18 @@ export default function RootLayout() {
     colorScheme === "dark" ? CombinedDarkTheme : CombinedLightTheme;
 
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={paperTheme}>
-        <ThemeProvider value={paperTheme}>
-          <AlertsProvider>
-            <AuthProvider>
+    <PaperProvider theme={paperTheme}>
+      <ThemeProvider value={paperTheme}>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <AlertsProvider>
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
               </Stack>
-            </AuthProvider>
-          </AlertsProvider>
-        </ThemeProvider>
-      </PaperProvider>
-    </SafeAreaProvider>
+            </AlertsProvider>
+          </QueryClientProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </PaperProvider>
   );
 }

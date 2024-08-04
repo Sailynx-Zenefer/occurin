@@ -24,7 +24,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           discogs_id?: string | null
-          id: string
+          id?: string
           img_url?: string | null
           name?: string | null
           spotify_id?: string | null
@@ -56,7 +56,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           creator_id?: string | null
-          id: string
+          id?: string
           post_id?: string | null
           updated_at?: string | null
           votes?: number | null
@@ -115,7 +115,7 @@ export type Database = {
           creator_id?: string | null
           description?: string | null
           finish_time?: string | null
-          id: string
+          id?: string
           img_url?: string | null
           in_person?: boolean | null
           location_lat?: number | null
@@ -169,7 +169,7 @@ export type Database = {
           artist_id?: string | null
           created_at?: string | null
           event_id?: string | null
-          id: string
+          id?: string
         }
         Update: {
           artist_id?: string | null
@@ -205,7 +205,7 @@ export type Database = {
           created_at?: string | null
           event_id?: string | null
           host_id?: string | null
-          id: string
+          id?: string
         }
         Update: {
           created_at?: string | null
@@ -240,7 +240,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           event_id?: string | null
-          id: string
+          id?: string
           organiser_id?: string | null
         }
         Update: {
@@ -279,7 +279,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
-          id: string
+          id?: string
           img_url?: string | null
           name?: string | null
           updated_at?: string | null
@@ -313,7 +313,7 @@ export type Database = {
           created_at?: string | null
           creator_id?: string | null
           event_id?: string | null
-          id: string
+          id?: string
           img_url?: string | null
           title?: string | null
           updated_at?: string | null
@@ -362,7 +362,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
-          id: string
+          id?: string
           profile_role?: string | null
           updated_at?: string | null
           username?: string | null
@@ -402,7 +402,7 @@ export type Database = {
           bought_ticket?: boolean | null
           created_at?: string | null
           event_id?: string | null
-          id: string
+          id?: string
           profile_id?: string | null
         }
         Update: {
@@ -439,7 +439,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          id: string
+          id?: string
           organiser_id?: string | null
           profile_id?: string | null
         }
@@ -459,6 +459,41 @@ export type Database = {
           },
           {
             foreignKeyName: "profiles_organisers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles_votes: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string | null
+          vote_down: boolean
+          vote_up: boolean
+          voted_upon: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          vote_down?: boolean
+          vote_up?: boolean
+          voted_upon: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          vote_down?: boolean
+          vote_up?: boolean
+          voted_upon?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_votes_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
