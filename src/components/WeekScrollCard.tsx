@@ -1,16 +1,15 @@
-import { StyleSheet } from "react-native";
+
 import { Database } from "../types/supabaseTypes";
-import { Button, Card, Text } from "react-native-paper";
 import EventCard from "./EventCard";
 import { useAuth } from "@/hooks/Auth";
-import { CellContainer, FlashList } from "@shopify/flash-list";
-import CardContent from "react-native-paper/lib/typescript/components/Card/CardContent";
+import { FlashList } from "@shopify/flash-list";
 import { useEffect, useRef } from "react";
 
-type EventType = Database["public"]["Tables"]["events"]["Row"];
+type FullEventInfo = Database["public"]["Tables"]["events"]["Row"];
+type EventInfo = Omit<FullEventInfo, 'tickets_bought' | 'capacity'> & { profiles: {username: string} };
 
 interface WeekScrollCardProps {
-  eventWeek: EventType[];
+  eventWeek: EventInfo[];
 }
 
 const WeekScrollCard = ({
@@ -48,35 +47,5 @@ const WeekScrollCard = ({
         />
   );
 };
-
-const styles = StyleSheet.create({
-  cardContent: {
-    flexDirection: "row",
-    borderWidth:2,
-    borderStyle:"solid",
-    borderColor:"purple"
-  },
-  card: {
-    display: "flex",
-    flexDirection: "column",
-    flexWrap: "wrap",
-    alignItems: "stretch",
-    justifyContent: "flex-start",
-  },
-  cardCover: {
-    marginHorizontal: 0,
-    marginVertical: 10,
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: "red",
-  },
-  cardActions: {
-    marginHorizontal: 0,
-    marginVertical: 10,
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: "green",
-  },
-});
 
 export default WeekScrollCard;

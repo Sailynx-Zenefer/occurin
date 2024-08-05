@@ -15,6 +15,7 @@ import { supabaseClient } from "../config/supabase-client";
 import { useAuth } from "../hooks/Auth";
 import NativePaperMapboxSearch from "./NativePaperMapboxSearch";
 import CurrencyInput, { formatNumber } from "react-native-currency-input";
+import { Link, router } from "expo-router";
 registerTranslation("en-GB", enGB);
 
 interface RHFormValues {
@@ -163,7 +164,7 @@ export default function EventCreator() {
         creator_id: user.id,
       };
 
-      let { error } = await supabaseClient.from("profiles").insert(SBform);
+      let { error } = await supabaseClient.from("events").insert(SBform);
 
       if (error) {
         throw error;
@@ -187,7 +188,10 @@ export default function EventCreator() {
   }, [watch]);
 
   return (
+
+
     <ScrollView contentContainerStyle={styles.eventCreator}>
+      
       <Controller
         control={control}
         rules={{
@@ -485,19 +489,27 @@ export default function EventCreator() {
           </Text>
         )}
       </Surface>
-
-      <Button
+      <Surface style={styles.bottomButtons}>      <Button
         uppercase={false}
         mode="outlined"
         onPress={handleSubmit(onSubmit)}
       >
-        Submit
-      </Button>
+        Create Event
+      </Button></Surface>
+
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  bottomButtons:{
+    display: "flex",
+    alignSelf: "stretch",
+    alignItems:"center",
+    justifyContent:"space-between",
+    flexDirection: "row-reverse",
+    paddingHorizontal:20
+  },
   eventCreator: {
     display: "flex",
     alignItems: "flex-start",

@@ -1,10 +1,11 @@
-import { View } from "react-native";
-import EventCreator from "../../../components/EventCreator";
+import EventCreator from "@/components/EventCreator";
+
 
 const CreateEvent = () => {
+
   
   return (
-        <EventCreator />
+      <EventCreator/>    
   );
 };
 

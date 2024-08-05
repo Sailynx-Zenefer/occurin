@@ -6,12 +6,17 @@ import { StyleSheet } from "react-native";
 import { IconButton, Surface, Text, useTheme } from "react-native-paper";
 // import {}
 
-type EventType = Database["public"]["Tables"]["events"]["Row"];
+type FullEventInfo = Database["public"]["Tables"]["events"]["Row"];
+type EventInfo = Omit<FullEventInfo, "tickets_bought" | "capacity"> & {
+  profiles: { username: string }
+};
 type PostType = Database["public"]["Tables"]["posts"]["Row"];
 type CommentType = Database["public"]["Tables"]["comments"]["Row"];
+
+type ToVoteOn =  EventInfo | PostType | CommentType ;
 interface VoterProps {
-  toVoteOn: EventType | PostType | CommentType;
-  tableName: "events" | "posts" | "comments";
+  toVoteOn: ToVoteOn,
+  setToVoteOn: React.Dispatch<React.SetStateAction<ToVoteOn>>
 }
 
 type ProfileVote = {
@@ -37,7 +42,7 @@ type ProfileVote = {
 //   );
 // };
 
-const Voter = ({ toVoteOn, tableName }: VoterProps): React.JSX.Element => {
+const Voter = ({ toVoteOn,setToVoteOn}: VoterProps): React.JSX.Element => {
   const { user } = useAuth();
   const theme = useTheme();
   //resets state because of flashlist recycling
@@ -50,33 +55,41 @@ const Voter = ({ toVoteOn, tableName }: VoterProps): React.JSX.Element => {
   });
 
   const handleVoteButton = (voteButton: string) => {
-
     setProfileVote((prevState) => {
       const newState = { ...prevState };
       if (voteButton === "up") {
         newState.vote_up = !prevState.vote_up;
+         if (prevState.vote_down === true) {
+          newState.vote_down = false}
       } else {
         newState.vote_down = !prevState.vote_down;
+        if (prevState.vote_up === true) {
+          newState.vote_up = false}
       }
       return newState;
-    })
+    });
     const upsertProfileVote = async () => {
       try {
-
-    const {error} = await voteUpsert(profileVote, toVoteOn, tableName);
-    if(error){throw(error)}
-      }catch(error){
+        const { error, voteVal} = await voteUpsert(user, profileVote, toVoteOn);
+        setToVoteOn((prevState)=>{
+          const newState = {...prevState}
+          newState.votes = voteVal
+          return newState
+        })
+        if (error) {
+          throw error;
+        }
+      } catch (error) {
         console.error("Error upserting profile vote:", error);
       }
-    }
-    upsertProfileVote()
+    };
+    upsertProfileVote();
   };
 
   useEffect(() => {
     const fetchProfileVote = async () => {
       try {
-        const {error, profileVote} = await voteFetch(user, toVoteOn.id);
-        console.log(error,profileVote)
+        const { error, profileVote } = await voteFetch(user, toVoteOn.id);
         if (profileVote.length > 0) {
           const vote = profileVote[0];
           setProfileVote({
@@ -86,8 +99,8 @@ const Voter = ({ toVoteOn, tableName }: VoterProps): React.JSX.Element => {
             vote_down: vote.vote_down,
           });
         }
-        if(error){
-          throw(error)
+        if (error) {
+          throw error;
         }
       } catch (error) {
         console.error("Error fetching profile vote:", error);
@@ -113,10 +126,9 @@ const Voter = ({ toVoteOn, tableName }: VoterProps): React.JSX.Element => {
     ? theme?.colors.error
     : theme?.colors.onError;
 
-  console.log("toVoteOn:",toVoteOn);
-
   return (
     <Surface style={styles.surface}>
+      <Text style={styles.text}>{"Interested?"}</Text>
       <IconButton
         style={styles.voteButton}
         icon={upIcon}
@@ -137,22 +149,31 @@ const Voter = ({ toVoteOn, tableName }: VoterProps): React.JSX.Element => {
 };
 
 const styles = StyleSheet.create({
+  text:{
+    textAlign:"center",
+    textAlignVertical:"center",
+    padding:0,
+    margin:0,
+  },
   surface: {
+    padding:0,
+    margin:0,
     display: "flex",
-    alignItems: "flex-start",
+    alignItems: "center",
+    justifyContent: "space-between",
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
     borderRadius: 2,
   },
   voteDisplay: {
-    padding: "auto",
-    borderWidth: 1,
-    color: "blue",
     textAlign: "center",
+    padding:0,
+    margin:0,
+
   },
   voteButton: {
-    borderWidth: 1,
+    padding:0,
+    margin:0,
   },
 });
 

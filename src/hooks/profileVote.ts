@@ -2,8 +2,11 @@ import { Database } from "@/types/supabaseTypes";
 import { supabaseClient } from "../config/supabase-client";
 import { PostgrestError, User } from "@supabase/supabase-js";
 
-type TableName = "events" | "posts" | "comments";
-type EventType = Database["public"]["Tables"]["events"]["Row"];
+type FullEventInfo = Database["public"]["Tables"]["events"]["Row"];
+type EventInfo = Omit<FullEventInfo, "tickets_bought" | "capacity"> & {
+  profiles: { username: string };
+};
+
 type PostType = Database["public"]["Tables"]["posts"]["Row"];
 type CommentType = Database["public"]["Tables"]["comments"]["Row"];
 
@@ -15,12 +18,13 @@ type ProfileVote = {
 };
 
 interface VoteFetch {
-  error: PostgrestError,
-  profileVote : ProfileVote[] | []
+  error: PostgrestError;
+  profileVote: ProfileVote[] | [];
 }
 
 interface VoteUpsert {
-  error: PostgrestError
+  error: PostgrestError;
+  voteVal: number;
 }
 
 export async function voteFetch(
@@ -36,36 +40,37 @@ export async function voteFetch(
   if (error) {
     throw error;
   }
-  return ({profileVote,error} || {profileVote:[],error});
+  return { profileVote, error } || { profileVote: [], error };
 }
 
 export async function voteUpsert(
+  user: User,
   profileVote: ProfileVote,
-  toVoteOn: EventType | PostType | CommentType,
-  toVoteOnTable: TableName,
-) :Promise<VoteUpsert> {
-  const upVal = profileVote[0].vote_up ? 1 : 0;
-  const downVal = profileVote[0].vote_down ? -1 : 0;
+  toVoteOn: EventInfo | PostType | CommentType,
+): Promise<VoteUpsert> {
+  let upVal = 0;
+  let downVal = 0;
+  if (profileVote.vote_up) {
+    upVal = 1;
+  } else {
+    upVal = 0;
+  }
+  if (profileVote.vote_down) {
+    downVal = -1;
+  } else {
+    downVal = 0;
+  }
+
   const voteVal = toVoteOn.votes + upVal + downVal;
 
   const { error, status } = await supabaseClient
     .from("profiles_votes")
-    .upsert(profileVote)
+    .upsert(profileVote, { onConflict: "profile_id, voted_upon" })
+    .eq("profile_id", user.id)
+    .eq("voted_upon", toVoteOn.id)
     .throwOnError();
   if (error && status !== 406) {
     throw error;
   }
-  if (status === 201) {
-    const toVoteOnUpdated = { ...toVoteOn };
-    toVoteOnUpdated.votes = toVoteOn.votes + voteVal;
-    const { error, status } = await supabaseClient
-      .from(toVoteOnTable)
-      .update(toVoteOnUpdated)
-      .eq("id", toVoteOn.id)
-      .throwOnError();
-    if (error && status !== 406) {
-      throw error;
-    }
-  }
-  return {error}
+  return { error, voteVal };
 }

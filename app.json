@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "occurin",
+    "scheme": "com.supabase",
     "slug": "occurin",
     "version": "1.0.0",
     "orientation": "portrait",

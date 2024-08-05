@@ -24,6 +24,7 @@ export default function Profile({ session }: { session: Session }) {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [profileRole, setProfileRole] = useState('')
   const alerts = useAlerts()
+  
   useEffect(() => {
     async function getProfile() {
       try {

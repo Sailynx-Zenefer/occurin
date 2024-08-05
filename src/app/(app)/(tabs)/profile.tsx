@@ -1,4 +1,4 @@
-import { View } from "react-native";
+
 import Profile from "../../../components/Profile";
 import { useAuth } from "../../../hooks/Auth";
 

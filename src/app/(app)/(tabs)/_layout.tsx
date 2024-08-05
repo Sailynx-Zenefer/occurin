@@ -8,8 +8,10 @@ export default function TabsLayout() {
     <ProtectedRoute>
       <Tabs>
         <Tabs.Screen
+        
           name="index"
           options={{
+            headerShown: false,
             headerTitle: "Home",
             title: "Home",
             tabBarIcon: ({ color }) => (
@@ -20,6 +22,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="search"
           options={{
+            headerShown: false,
             headerTitle: "Search",
             title: "Search",
             tabBarIcon: ({ color }) => (
@@ -30,6 +33,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="create-event"
           options={{
+            headerShown: false,
             headerTitle: "Create Event",
             title: "Create Event",
             tabBarIcon: ({ color }) => (
@@ -40,6 +44,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="user-calendar"
           options={{
+            headerShown: false,
             headerTitle: "Calendar",
             title: "Calendar",
             tabBarIcon: ({ color }) => (
@@ -50,6 +55,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="profile"
           options={{
+            headerShown: false,
             headerTitle: "Profile Page",
             title: "Profile",
             tabBarIcon: ({ color }) => (
