@@ -14,4 +14,23 @@ This project is an app designed to work across devices
 
 - **Others**: React native paper, Shopify Flashlist,Tanstack React query,Day.js, Mapbox gl,react hook forms,react native calandars
 
+## Running the app yourself
 
+to run yourself....
+
+- download the repo
+- install dependencies using...
+
+```bash
+npm install
+```
+or..
+
+```bash
+yarn
+```
+
+then run using...
+```bash
+npx expo start
+```

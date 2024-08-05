@@ -4,6 +4,7 @@ import {
   MD3LightTheme,
   MD3DarkTheme,
   adaptNavigationTheme,
+  MD3Colors,
 } from "react-native-paper";
 import {
   DarkTheme as NavigationDarkTheme,
@@ -19,8 +20,8 @@ import merge from "deepmerge";
 import { Colors } from "../constants/colors";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
-const customDarkTheme = { ...MD3DarkTheme, colors: Colors.dark };
-const customLightTheme = { ...MD3LightTheme, colors: Colors.light };
+const customDarkTheme = { ...MD3DarkTheme, colors: MD3Colors. };
+const customLightTheme = { ...MD3LightTheme, colors: MD3Colors };
 
 const { LightTheme, DarkTheme } = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
@@ -34,12 +35,12 @@ const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const paperTheme =
-    colorScheme === "dark" ? CombinedDarkTheme : CombinedLightTheme;
+  const paperTheme = CombinedLightTheme
+    // colorScheme === "dark" ? CombinedDarkTheme : CombinedLightTheme;
 
   return (
     <PaperProvider theme={paperTheme}>
-      <ThemeProvider value={paperTheme}>
+      <ThemeProvider value={CombinedLightTheme}>
         <AuthProvider>
           <QueryClientProvider client={queryClient}>
             <AlertsProvider>
