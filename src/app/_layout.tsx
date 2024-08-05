@@ -20,7 +20,7 @@ import merge from "deepmerge";
 import { Colors } from "../constants/colors";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
-const customDarkTheme = { ...MD3DarkTheme, colors: MD3Colors. };
+const customDarkTheme = { ...MD3DarkTheme, colors: MD3Colors };
 const customLightTheme = { ...MD3LightTheme, colors: MD3Colors };
 
 const { LightTheme, DarkTheme } = adaptNavigationTheme({
