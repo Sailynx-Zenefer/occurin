@@ -3,7 +3,7 @@
 A social events app that lets users browse and sign up to events.
 This project is an app designed to work across devices
 
-[Online Hosted Version](https://main--occurin.netlify.app/sign-in)
+[Online Hosted Version](https://main--occurin.netlify.app/)
 
 ## Tech stack
 
