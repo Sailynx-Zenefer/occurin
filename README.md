@@ -3,6 +3,8 @@
 A social events app that lets users browse and sign up to events.
 This project is an app designed to work across devices
 
+[Online Hosted Version](https://66b1013242913a3059a1dc10--occurin.netlify.app/)
+
 ## Tech stack
 
 - **React Native**: Designed to work on Web, Android and iOS
