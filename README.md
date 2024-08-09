@@ -12,7 +12,7 @@ This project is an app designed to work across devices
 - **TypeScript**: App developed with strict TypeScript configuration to ensure type safety between client and backend
 - **Supabase**: Supabase provides all backend services including Postgres database, authentication and image storage
 
-- **Others**: React native paper, Shopify Flashlist,Tanstack React query,Day.js, Mapbox gl,react hook forms,react native calandars
+- **Others**: React native paper, Shopify Flashlist,Tanstack React query,Day.js, Mapbox gl,react hook forms
 
 ## Running the app yourself
 

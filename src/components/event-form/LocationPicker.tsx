@@ -134,6 +134,7 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
 
 const styles = StyleSheet.create({
   datePickers: {
+    margin:10,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "row",
@@ -143,6 +144,7 @@ const styles = StyleSheet.create({
     // padding: 5,
   },
   errorText: {
+    margin:10,
     color: "red",
     marginVertical: 5,
   },

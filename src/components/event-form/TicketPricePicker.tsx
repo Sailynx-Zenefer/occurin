@@ -135,6 +135,7 @@ const TicketPricePicker = ({
 
 const styles = StyleSheet.create({
   datePickers: {
+    margin:10,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "row",

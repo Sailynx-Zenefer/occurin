@@ -16,53 +16,53 @@ const fetchNextDate = async (
   { saved }: EventWeekOptions,
   user: User,
 ): Promise<Date | null> => {
-  console.log("lllaasstdate", lastDate);
-
   if (saved) {
-    const { data, error, status } = await supabaseClient
+    const { data: res } = await supabaseClient
       .from("events")
-      .select(
-        `begin_time,
-        id, profiles_votes!inner()`,
-      )
-      .gte("begin_time", lastDate.toISOString())
-      .order("begin_time", { ascending: true })
-      .eq("profiles_votes.user_id", user.id)
-      .eq("profiles_votes.save_event", true)
-      .limit(1)
-      .single();
+      .select(`profiles_votes!inner(id)`);
 
-    if (error && status !== 406) {
-      throw error;
+    if (res.length > 0) {
+      const { data, error, status } = await supabaseClient
+        .from("events")
+        .select(
+          `begin_time,
+      id, profiles_votes!inner()`,
+        )
+        .gte("begin_time", lastDate.toISOString())
+        .order("begin_time", { ascending: true })
+        .limit(1)
+        .single();
+      if (error ) {
+        throw error;
+      }
+
+      if (data && data.begin_time) {
+        return new Date(data.begin_time);
+      }
+
+      return null;
     }
-
-    if (data && data.begin_time) {
-      return new Date(data.begin_time);
-    }
-
-    return null;
-  } else {
-    const { data, error, status } = await supabaseClient
-      .from("events")
-      .select(
-        `begin_time,
-        id`,
-      )
-      .gte("begin_time", lastDate.toISOString())
-      .order("begin_time", { ascending: true })
-      .limit(1)
-      .single();
-
-    if (error && status !== 406) {
-      throw error;
-    }
-
-    if (data && data.begin_time) {
-      return new Date(data.begin_time);
-    }
-
-    return null;
   }
+  const { data, error, status } = await supabaseClient
+    .from("events")
+    .select(
+      `begin_time,
+        id`,
+    )
+    .gte("begin_time", lastDate.toISOString())
+    .order("begin_time", { ascending: true })
+    .limit(1)
+    .single();
+
+  if (error ) {
+    throw error;
+  }
+
+  if (data && data.begin_time) {
+    return new Date(data.begin_time);
+  }
+
+  return null;
 };
 
 const fetchEventWeekSB = async (
@@ -70,14 +70,20 @@ const fetchEventWeekSB = async (
   { saved }: EventWeekOptions,
   user: User,
 ): Promise<EventWeek | null> => {
-  const weekBeginDate = dateIncrement(nextDate, dateMod(nextDate.getDay()));
+  // const weekBeginDate = dateIncrement(nextDate, dateMod(nextDate.getDay()));
+  const weekBeginDate = nextDate
   const nextWeekBeginDate = dateIncrement(weekBeginDate, 7);
 
   if (saved) {
-    const { data, error, status } = await supabaseClient
+    const { data: res } = await supabaseClient
       .from("events")
-      .select(
-        `id, 
+      .select(`profiles_votes!inner(id)`);
+
+    if (res.length > 0) {
+      const { data, error, status } = await supabaseClient
+        .from("events")
+        .select(
+          `id, 
      creator_id,
      profiles!inner(username,avatar_url),
      profiles_votes!inner(),
@@ -92,25 +98,25 @@ const fetchEventWeekSB = async (
      ticketed, title,
      updated_at,
      votes`,
-      )
-      .gte("begin_time", weekBeginDate.toISOString())
-      .lt("begin_time", nextWeekBeginDate.toISOString())
-      .order("begin_time", { ascending: true })
-      .eq("profiles_votes.user_id", user.id)
-      .eq("profiles_votes.save_event", true);
-    if (error && status !== 406) {
-      throw error;
-    }
+        )
+        .gte("begin_time", weekBeginDate.toISOString())
+        .lt("begin_time", nextWeekBeginDate.toISOString())
+        .order("begin_time", { ascending: true })
+        .eq("profiles_votes.user_id", user.id)
+        .eq("profiles_votes.save_event", true);
+      if (error) {
+        throw error;
+      }
 
-    const eventWeek = data || [];
-    console.log(eventWeek);
-    return {
-      eventWeek,
-      weekBeginDate,
-      nextWeekBeginDate,
-    };
-  } else {
-    
+      const eventWeek = data || [];
+      return {
+        eventWeek,
+        weekBeginDate,
+        nextWeekBeginDate,
+      };
+    }
+  }
+  {
     const { data, error, status } = await supabaseClient
       .from("events")
       .select(
@@ -132,12 +138,11 @@ const fetchEventWeekSB = async (
       .gte("begin_time", weekBeginDate.toISOString())
       .lt("begin_time", nextWeekBeginDate.toISOString())
       .order("begin_time", { ascending: true });
-    if (error && status !== 406) {
+    if (error) {
       throw error;
     }
 
     const eventWeek = data || [];
-    console.log(eventWeek);
     return {
       eventWeek,
       weekBeginDate,
@@ -152,7 +157,7 @@ interface EventWeekOptions {
 }
 
 export const fetchEventWeek = async (
-  pageParam: Date,
+  pageParam: Date | null,
   options: EventWeekOptions,
   user: User,
 ): Promise<EventWeek> => {
@@ -191,10 +196,8 @@ const useEventWeek = ({ saved, tabName }: EventWeekOptions, user: User) => {
     initialPageParam: today,
     getNextPageParam: (lastPage, lastPageParam) => {
       if (!lastPage) {
-        console.log("no lastpage");
         return null;
       } else {
-        console.log(lastPage);
         return lastPage.nextWeekBeginDate;
       }
     },

@@ -99,7 +99,7 @@ export default function EventCreator() {
   });
 
   const onSubmit = async (RHForm: RHFormValues) => {
-    alerts.alert("Form completed", JSON.stringify(RHForm));
+    alerts.alert("Event Created!");
     try {
       setLoading(true);
       if (!user) throw new Error("No user on the session!");
@@ -231,9 +231,9 @@ export default function EventCreator() {
             mode="outlined"
             onPress={handleSubmit(onSubmit)}
           >
-          <Text> {loading ? "Creating..." : "Create Event"}</Text> 
+          <Text> {loading ? "Create Event" : "Create Event"}</Text> 
           </Button>
-          <Text>{loading ? "Event..." : ""}</Text>
+          <Text>{loading ? "Creating..." : ""}</Text>
         </Surface>
       </Card>
     </ScrollView>
@@ -245,12 +245,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: "hidden",
     maxWidth: "100%",
+    margin:10,
   },
   image: {
     objectFit: "cover",
     paddingTop: 0,
-  },
+    margin:10,
+    },
   noImage: {
+    margin:10,
     backgroundColor: "#333",
     borderWidth: 1,
     borderStyle: "solid",
@@ -258,6 +261,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   bottomButtons: {
+    margin:10,
     display: "flex",
     alignSelf: "stretch",
     alignItems: "center",
@@ -266,6 +270,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   scrollView: {
+    margin:10,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "column",
@@ -289,8 +294,14 @@ const styles = StyleSheet.create({
     // borderWidth: 5,
     padding: 10,
     paddingLeft: 30,
+    paddingBottom:50,
+    marginHorizontal:"auto",
+    marginTop:30,
+    marginBottom:50,
   },
   textInput: {
+
+    margin:10,
     // backgroundColor: "white",
     // borderStyle: "solid",
     // borderColor: "grey",
@@ -299,6 +310,7 @@ const styles = StyleSheet.create({
     // marginVertical: 5,
   },
   errorText: {
+    margin:10,
     color: "red",
     marginVertical: 5,
   },

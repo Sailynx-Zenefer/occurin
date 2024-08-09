@@ -169,9 +169,10 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
 
 const styles = StyleSheet.create({
   datePickers: {
+    margin:50,
     display: "flex",
     alignItems: "flex-start",
-    flexDirection: "row",
+    flexDirection: "column",
     flexWrap: "wrap",
     justifyContent: "space-between",
     borderRadius: 2,

@@ -46,11 +46,8 @@ export async function uploadImage(
       allowsEditing: true, // Allows the user to crop / rotate their photo before uploading it
       quality: 1,
     });
-    console.log(result);
 
     if (!result.canceled || result.assets) {
-      console.log(result);
-      console.log(result.assets[0].uri);
       const fileName = `${Date.now()}.${result.assets[0].mimeType.slice(6)}`;
       const arraybuffer = await fetch(result.assets[0].uri).then((res) =>
         res.arrayBuffer(),
