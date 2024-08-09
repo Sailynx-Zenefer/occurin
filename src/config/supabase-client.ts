@@ -16,7 +16,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-const StoreAdapter = Platform.OS === 'web' ? AsyncStorage : ExpoSecureStoreAdapter;
+export const StoreAdapter = Platform.OS === 'web' ? AsyncStorage : ExpoSecureStoreAdapter;
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_ANON_KEY as string;

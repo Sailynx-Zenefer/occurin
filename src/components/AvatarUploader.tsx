@@ -12,18 +12,18 @@ interface Props {
 
 export default function AvatarUploader({ url, size = 150, onUpload }: Props) {
   const [uploading, setUploading] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarUri, setAvatarUri] = useState(null)
   const avatarSize = { height: size, width: size }
   
   useEffect(() => {
-    if (url) downloadImage(url,setAvatarUrl,'avatars')
+    if (url) downloadImage(url,setAvatarUri,'avatars')
   }, [url])
 
   return (
     <View>
-      {avatarUrl ? (
+      {avatarUri ? (
         <Image
-          source={{ uri: avatarUrl }}
+          source={{ uri: avatarUri }}
           accessibilityLabel="Avatar"
           style={[avatarSize, styles.avatar, styles.image]}
         />

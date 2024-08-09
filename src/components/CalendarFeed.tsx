@@ -50,17 +50,25 @@ const CalendarFeed = () => {
       </View>
       <FlashList
         data={eventWeeks}
-        renderItem={({ item: eventWeek }) => (
-          <WeekScrollCard refetch={refetch} eventWeek={eventWeek.eventWeek} isFetching={isFetching} tabName={"index"}/>
-        )}
+        renderItem={(data) => {
+          if (!data || !data.item || data.item.eventWeek.length === 0) {
+            return null; 
+          }
+          return(
+          <WeekScrollCard 
+          eventWeek={data.item.eventWeek} 
+          refetch={refetch} isFetching={isFetching} 
+          tabName={"index"} />)
+        }}
         numColumns={1}
         estimatedItemSize={200 * 200}
         estimatedListSize={ {height:1000, width:700} }
         refreshing={isFetching}
         extraData={[eventWeeks,isFetching,status]}
-        keyExtractor={(item,index) => `${index}index${item.eventWeek.toString()}`}
+        keyExtractor={
+          (item,index) => item ? `${index}index${item.eventWeek.toString()}` : `${index}-null`}
         onRefresh={fetchNextPage}
-        onEndReached={() => (hasNextPage ? !isFetching && fetchNextPage() : null)}
+        onEndReached={() => (hasNextPage ? !isFetching && fetchNextPage() : refetch)}
         onEndReachedThreshold={0.1}
         ListHeaderComponentStyle={styles.headerStyle}
         ListHeaderComponent={() => <View></View>}
@@ -68,11 +76,11 @@ const CalendarFeed = () => {
         ListFooterComponent={() => <View>
 
         </View>}
-        ItemSeparatorComponent={({ trailingItem: { eventWeek } }) => {
-          if (!eventWeek || eventWeek.length === 0) {
-            return <></>;
+        ItemSeparatorComponent={({trailingItem }) => {
+          if (!trailingItem || !trailingItem.eventWeek || trailingItem.eventWeek.length === 0) {
+            return null; 
           }
-          const firstEventTime = new Date(eventWeek[0].begin_time);
+          const firstEventTime = new Date(trailingItem.eventWeek[0].begin_time);
           const weekBeginDate = dateIncrement(
             firstEventTime,
             dateMod(firstEventTime.getDay()),

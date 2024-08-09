@@ -1,12 +1,14 @@
+import { Colors } from "@/constants/colors";
 import { BlurView } from "expo-blur";
-import { StyleSheet, useColorScheme, View } from "react-native";
-import { Chip, Text } from "react-native-paper";
+import { StyleSheet, useColorScheme } from "react-native";
+import { Chip, Text, useTheme } from "react-native-paper";
 
 interface DayChipProps {
   day: string;
 }
 
 const DayChip = ({ day }: DayChipProps) => {
+  const theme = useTheme()
   const styles = StyleSheet.create({
     chip: {
       backgroundColor: `${dayColors[day]}`,
@@ -16,6 +18,7 @@ const DayChip = ({ day }: DayChipProps) => {
       alignItems: "stretch",
     },
     text: {
+      color:theme.colors.onPrimary,
       alignItems: "stretch",
       padding: "auto",
       margin: "auto",
@@ -49,13 +52,13 @@ const DayChipRibbon = () => {
 };
 
 const dayColors = {
-  Mon: "red",
-  Tue: "orange",
-  Wed: "yellow",
-  Thu: "green",
-  Fri: "blue",
-  Sat: "indigo",
-  Sun: "violet",
+  Mon: Colors.dark.red,
+  Tue: Colors.dark.orange,
+  Wed: Colors.dark.yellow,
+  Thu: Colors.dark.green,
+  Fri: Colors.dark.blue,
+  Sat: Colors.dark.indigo,
+  Sun: Colors.dark.violet,
 };
 
 const dayTextColors = {

@@ -41,7 +41,14 @@ export const Colors = {
     },
     surfaceDisabled: 'rgba(26, 28, 30, 0.12)',
     onSurfaceDisabled: 'rgba(26, 28, 30, 0.38)',
-    backdrop: 'rgba(44, 49, 55, 0.4)'
+    backdrop: 'rgba(44, 49, 55, 0.4)',
+    red: "rgb(234, 138, 123)",
+    orange: 'rgb(222, 149, 84)',
+    yellow: 'rgb(176, 173, 76)',
+    green: 'rgb(129, 187, 111)',
+    blue: 'rgb(130, 167, 244)',
+    indigo: 'rgb(175, 152, 235)',
+    violet: 'rgb(206, 141, 208)'
   },
   dark: {
     primary: 'rgb(150, 204, 255)',
@@ -83,7 +90,14 @@ export const Colors = {
     },
     surfaceDisabled: 'rgba(226, 226, 229, 0.12)',
     onSurfaceDisabled: 'rgba(226, 226, 229, 0.38)',
-    backdrop: 'rgba(44, 49, 55, 0.4)'
+    backdrop: 'rgba(44, 49, 55, 0.4)',
+    red: "rgb(234, 138, 123)",
+    orange: 'rgb(222, 149, 84)',
+    yellow: 'rgb(176, 173, 76)',
+    green: 'rgb(129, 187, 111)',
+    blue: 'rgb(130, 167, 244)',
+    indigo: 'rgb(175, 152, 235)',
+    violet: 'rgb(206, 141, 208)'
   }
 }
 

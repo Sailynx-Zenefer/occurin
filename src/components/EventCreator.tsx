@@ -63,7 +63,7 @@ interface FormValues {
 export default function EventCreator() {
   const [loading, setLoading] = useState(true);
   const [imgUploading, setImgUploading] = useState(false);
-  const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
+
   const { user } = useAuth();
   const alerts = useAlerts();
 
@@ -133,10 +133,10 @@ export default function EventCreator() {
       setLoading(false);
     }
   };
-
+  const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
   useEffect(() => {
     if (eventImageUrl)
-      downloadImage(eventImageUrl, setEventImageUrl, "avatars");
+      downloadImage(eventImageUrl, setEventImageUrl, "event_imgs",);
   }, [eventImageUrl]);
 
   return (
@@ -187,9 +187,6 @@ export default function EventCreator() {
 
         <Controller
           control={control}
-          rules={{
-            required: true,
-          }}
           render={({ field: { onChange, onBlur, value } }) => (
             <View>
               {eventImageUrl ? (
@@ -203,9 +200,11 @@ export default function EventCreator() {
               )}
               <View>
                 <Button
-                  onPress={() =>
-                    uploadImage(setEventImageUrl, setImgUploading, "event_imgs")
-                  }
+                  onPress={() =>{
+                    uploadImage(setEventImageUrl, setImgUploading, "event_imgs", (path)=>{
+                      setValue("imgUrl", path);
+                    })
+                  }}
                   disabled={imgUploading}
                 >
                   {imgUploading ? "Uploading ..." : "Choose an image..."}

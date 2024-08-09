@@ -46,9 +46,16 @@ const SavedCalendar = () => {
 
       <FlashList
         data={eventWeeks}
-        renderItem={({ item: eventWeek }) => (
-          <WeekScrollCard eventWeek={eventWeek.eventWeek} refetch={refetch} isFetching={isFetching} tabName={"saved-calendar"} />
-        )}
+        renderItem={(data) => {
+          if (!data || !data.item || data.item.eventWeek.length === 0) {
+            return null; 
+          }
+          return(
+          <WeekScrollCard 
+          eventWeek={data.item.eventWeek} 
+          refetch={refetch} isFetching={isFetching} 
+          tabName={"saved-calendar"} />)
+        }}
         numColumns={1}
         extraData={[eventWeeks,isFetching,status]}
         estimatedItemSize={200 * 200}
@@ -59,7 +66,8 @@ const SavedCalendar = () => {
           hasNextPage ? !isFetching && fetchNextPage() : null
         }
         onEndReachedThreshold={0.1}
-        keyExtractor={(item,index) => `${index}saved-calendar${item.eventWeek.toString()}`}
+        keyExtractor={
+          (item,index) => item ? `${index}saved-calendar${item.eventWeek.toString()}` : `${index}-null2`}
         ListHeaderComponentStyle={styles.headerStyle}
         ListHeaderComponent={() => <View></View>}
         ListFooterComponentStyle={styles.footerStyle}
@@ -68,11 +76,11 @@ const SavedCalendar = () => {
             {/* <Text>{isFetchingNextPage ? "Loading..." : null}</Text> */}
           </View>
         )}
-        ItemSeparatorComponent={({ trailingItem: { eventWeek } }) => {
-          if (!eventWeek || eventWeek.length === 0) {
-            return <></>;
+        ItemSeparatorComponent={({trailingItem }) => {
+          if (!trailingItem || !trailingItem.eventWeek || trailingItem.eventWeek.length === 0) {
+            return null; 
           }
-          const firstEventTime = new Date(eventWeek[0].begin_time);
+          const firstEventTime = new Date(trailingItem.eventWeek[0].begin_time);
           const weekBeginDate = dateIncrement(
             firstEventTime,
             dateMod(firstEventTime.getDay()),
