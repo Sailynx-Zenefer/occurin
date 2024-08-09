@@ -4,7 +4,7 @@ import { FlashList } from "@shopify/flash-list";
 import WeekScrollCard from "./WeekScrollCard";
 import "react-native-url-polyfill/auto";
 import useEventWeek from "@/hooks/useEventWeek";
-import { Button, Surface, Text } from "react-native-paper";
+import { Surface, Text } from "react-native-paper";
 import dayjs from "dayjs";
 import DayChipRibbon from "./DayChipRibbon";
 import { useAuth } from "@/hooks/Auth";
@@ -15,21 +15,18 @@ const dateIncrement = (date: Date, days: number): Date => {
   result.setDate(result.getDate() + days);
   return result;
 };
-const dateMod = (n) => -((n - 1) % 8);
+const dateMod = (n: number) => -((n - 1) % 8);
 
-
-
-const CalendarFeed = () => {
+const SavedCalendar = () => {
   const { user } = useAuth();
   const {
-    isFetching,
     hasNextPage,
-    fetchNextPage,
     eventWeeks,
+    isFetching,
+    fetchNextPage,
     refetch,
     status
-
-  } = useEventWeek({ saved: false, tabName:"index"}, user);
+  } = useEventWeek({ saved: true, tabName:"saved-calendar",}, user);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,37 +34,40 @@ const CalendarFeed = () => {
     }, [refetch])
   );
 
-  useEffect(()=>{
-    if (status === "success"){
-
-    }},[status]
-  )
-
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.blurContainer}>
         <DayChipRibbon />
       </View>
+
+      {eventWeeks.length > 0 ? null : (
+        <Text style={styles.nothingText}>{"You have no events saved..."}</Text>
+      )}
+
       <FlashList
         data={eventWeeks}
         renderItem={({ item: eventWeek }) => (
-          <WeekScrollCard refetch={refetch} eventWeek={eventWeek.eventWeek} isFetching={isFetching} tabName={"index"}/>
+          <WeekScrollCard eventWeek={eventWeek.eventWeek} refetch={refetch} isFetching={isFetching} tabName={"saved-calendar"} />
         )}
         numColumns={1}
-        estimatedItemSize={200 * 200}
-        estimatedListSize={ {height:1000, width:700} }
-        refreshing={isFetching}
         extraData={[eventWeeks,isFetching,status]}
-        keyExtractor={(item,index) => `${index}index${item.eventWeek.toString()}`}
+        estimatedItemSize={200 * 200}
+        estimatedListSize={{ height: 1000, width: 700 }}
+        refreshing={isFetching}
         onRefresh={fetchNextPage}
-        onEndReached={() => (hasNextPage ? !isFetching && fetchNextPage() : null)}
+        onEndReached={() =>
+          hasNextPage ? !isFetching && fetchNextPage() : null
+        }
         onEndReachedThreshold={0.1}
+        keyExtractor={(item,index) => `${index}saved-calendar${item.eventWeek.toString()}`}
         ListHeaderComponentStyle={styles.headerStyle}
         ListHeaderComponent={() => <View></View>}
         ListFooterComponentStyle={styles.footerStyle}
-        ListFooterComponent={() => <View>
-
-        </View>}
+        ListFooterComponent={() => (
+          <View>
+            {/* <Text>{isFetchingNextPage ? "Loading..." : null}</Text> */}
+          </View>
+        )}
         ItemSeparatorComponent={({ trailingItem: { eventWeek } }) => {
           if (!eventWeek || eventWeek.length === 0) {
             return <></>;
@@ -82,7 +82,6 @@ const CalendarFeed = () => {
           );
           return (
             <Surface style={styles.surfaceStyle} elevation={1}>
-              
               <Text style={styles.textStyle}>{formatBeginDate}</Text>
             </Surface>
           );
@@ -92,7 +91,7 @@ const CalendarFeed = () => {
   );
 };
 
-export default CalendarFeed;
+export default SavedCalendar;
 
 const styles = StyleSheet.create({
   blurContainer: {
@@ -120,7 +119,15 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
   },
+  nothingText: {
+    display: "flex",
+    height: "50%",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   footerStyle: {
+    flexWrap: "wrap",
     marginTop: 3,
     marginBottom: 0,
     display: "flex",

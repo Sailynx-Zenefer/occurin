@@ -1,7 +1,8 @@
 import { StyleSheet } from "react-native";
 import CalendarFeed from "../../../components/CalendarFeed";
 import "react-native-url-polyfill/auto";
-const NewsFeed = () => {
+const CalendarFeedView
+ = () => {
   return (
       <CalendarFeed/>
   );
@@ -13,4 +14,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NewsFeed;
+export default CalendarFeedView
+;

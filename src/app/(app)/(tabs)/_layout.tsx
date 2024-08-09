@@ -1,32 +1,63 @@
 import {Tabs} from 'expo-router';
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import ProtectedRoute from '../../../components/ProtectedRoute';
+import { StyleSheet, useColorScheme } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { Avatar, Icon } from 'react-native-paper';
+import { useEffect, useState } from 'react';
+import { downloadImage } from '@/hooks/imageUtils';
+import { useAuth } from '@/hooks/Auth';
+import { Profile } from '@/types/types';
+import { supabaseClient } from '@/config/supabase-client';
+import { User } from '@supabase/supabase-js';
 
 export default function TabsLayout() {
+  const colorScheme = useColorScheme();
+  const tint =
+  colorScheme === "dark" ? "systemMaterialDark" : "systemMaterialLight"
+  const {user} = useAuth()
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      downloadImage(profile.avatar_url, setAvatarUrl, 'avatars');
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    const setProfileData = async (user :User) => {
+      try {
+        const { data, error} = await supabaseClient
+        .from("profiles")
+        .select()
+        .eq("id", user.id);
+        setProfile(data[0]);
+      if (error) throw error;
+      }catch(error){
+        console.error("Error getting profile data:", error);
+      }}
+      setProfileData(user)
+  },[user])
+
 
   return (
     <ProtectedRoute>
-      <Tabs>
+      <Tabs screenOptions={{
+            tabBarStyle: { 
+              borderTopWidth: 0,
+              position: 'absolute' },
+            tabBarBackground: () => (
+              <BlurView tint={tint} intensity={38} style={StyleSheet.absoluteFill} />
+            ),
+        }}>
         <Tabs.Screen
-        
           name="index"
           options={{
             headerShown: false,
             headerTitle: "Home",
             title: "Home",
-            tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="home" color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="search"
-          options={{
-            headerShown: false,
-            headerTitle: "Search",
-            title: "Search",
-            tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="search" color={color} />
+            tabBarIcon: ({color}) => (
+              <Icon size={28} source={"calendar-month"} />
             ),
           }}
         />
@@ -37,18 +68,18 @@ export default function TabsLayout() {
             headerTitle: "Create Event",
             title: "Create Event",
             tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="plus-square" color={color} />
+              <Icon size={28} source={"calendar-plus"} />
             ),
           }}
         />
         <Tabs.Screen
-          name="user-calendar"
+          name="saved-calendar"
           options={{
             headerShown: false,
             headerTitle: "Calendar",
-            title: "Calendar",
+            title: "Saved",
             tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="calendar" color={color} />
+              <Icon size={28} source={"calendar-star"} />
             ),
           }}
         />
@@ -59,7 +90,10 @@ export default function TabsLayout() {
             headerTitle: "Profile Page",
             title: "Profile",
             tabBarIcon: ({ color }) => (
-              <FontAwesome size={28} name="user-circle" color={color} />
+              <Avatar.Image
+              size={28}
+              source={{ uri: avatarUrl }}
+            />
             ),
           }}
         />
@@ -67,4 +101,3 @@ export default function TabsLayout() {
       </ProtectedRoute>
   );
 };
-

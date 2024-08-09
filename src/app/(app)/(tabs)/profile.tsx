@@ -4,7 +4,7 @@ import { useAuth } from "../../../hooks/Auth";
 
 // ...
 
-const ProfilePage = () => {
+const ProfileView = () => {
   const { session, user } = useAuth();
 
   if (!session || !user) {
@@ -16,4 +16,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default ProfileView;

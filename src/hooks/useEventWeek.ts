@@ -1,116 +1,161 @@
-import { Database } from "@/types/supabaseTypes";
+import { EventWeek } from "@/types/types";
 import { supabaseClient } from "../config/supabase-client";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { error } from "console";
+import { User } from "@supabase/supabase-js";
 
 const dateIncrement = (date: Date, days: number): Date => {
-  var result = new Date(date);
+  const result = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
 };
 
-type FullEventInfo = Database["public"]["Tables"]["events"]["Row"];
-type EventInfo = Omit<FullEventInfo, 'tickets_bought' | 'capacity'> & { profiles: {username: string} };
-interface EventWeek {
-  eventWeek: EventInfo[] | [];
-  weekBeginDate: Date;
-  nextWeekBeginDate: Date;
-}
+const dateMod = (n: number) => -((n - 1) % 8);
 
-const fetchNextDate = async (lastDate: Date): Promise<Date> => {
-  const {
-    data: { begin_time },
-    error,
-    status,
-  } = await supabaseClient
+const fetchNextDate = async (
+  lastDate: Date,
+  { saved }: EventWeekOptions,
+  user: User,
+): Promise<Date> => {
+  const query = supabaseClient
     .from("events")
-    .select("begin_time")
+    .select(
+      `begin_time,
+      id,
+      profiles_votes!inner()`,
+    )
     .gte("begin_time", lastDate.toISOString())
-    .order("begin_time", { ascending: true })
-    .limit(1)
-    .single();
+    .order("begin_time", { ascending: true });
+  if (saved) {
+    query
+      .eq("profiles_votes.user_id", user.id)
+      .eq("profiles_votes.save_event", true);
+  }
+
+  const { data, error, status } = await query.limit(1).single();
+
   if (error && status !== 406) {
     throw error;
   }
-  const nextDate = new Date(begin_time);
-  return nextDate;
+
+  if (data && data.begin_time) {
+    return new Date(data.begin_time);
+  }
+
+  return null;
 };
 
-const fetchEventWeekSB = async (nextDate): Promise<EventWeek> => {
-  const dateIncrement = (date: Date, days: number): Date => {
-    var result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-  };
-  const dateMod = (n) => -((n - 1) % 8);
+const fetchEventWeekSB = async (
+  nextDate: Date,
+  { saved }: EventWeekOptions,
+  user: User,
+): Promise<EventWeek> => {
+  
   const weekBeginDate = dateIncrement(nextDate, dateMod(nextDate.getDay()));
   const nextWeekBeginDate = dateIncrement(weekBeginDate, 7);
-    const { data, error, status } = await supabaseClient
-      .from("events")
-      .select('id,creator_id, profiles!inner(username),begin_time,created_at,creator_id,description,finish_time,img_url,in_person,location_lat,location_long,location_name,ticket_price,ticketed,title,updated_at,votes')
-      .gte("begin_time", weekBeginDate.toISOString())
-      .lt("begin_time", nextWeekBeginDate.toISOString())
-      .order("begin_time", { ascending: true });
-    if (error && status !== 406) {
-      throw error;
-    }
-    const eventWeek = data || [];
-    return {
-      eventWeek,
-      weekBeginDate,
-      nextWeekBeginDate,
-    };
-};
 
-const fetchEventWeek = async (pageParam: Date): Promise<EventWeek> => {
-  try {
-    const { eventWeek, weekBeginDate, nextWeekBeginDate } =
-      await fetchEventWeekSB(await fetchNextDate(pageParam));
-    console.log("eventweek:", eventWeek, weekBeginDate, nextWeekBeginDate);
-    if (error instanceof Error) {
-      console.error(error);
-    }
-    
-    return {
-      eventWeek,
-      weekBeginDate,
-      nextWeekBeginDate,
-    };
-  } catch (error) {
-    console.log("fetcheventweekerror:", error);
+  const query = supabaseClient
+    .from("events")
+    .select(
+     `id, 
+     creator_id,
+     profiles_votes!inner(),
+     profiles!inner(username,avatar_url),
+     begin_time, created_at, description,
+     finish_time,
+     img_url,
+     in_person,
+     location_lat,
+     location_long,
+     location_name,
+     ticket_price,
+     ticketed, title,
+     updated_at,
+     votes`,
+    )
+    .gte("begin_time", weekBeginDate.toISOString())
+    .lt("begin_time", nextWeekBeginDate.toISOString())
+    .order("begin_time", { ascending: true });
+
+  if (saved) {
+    console.log("saved", query);
+    query
+      .eq("profiles_votes.user_id", user.id)
+      .eq("profiles_votes.save_event", true);
   }
+
+  const { data, error, status } = await query;
+
+  if (error && status !== 406) {
+    throw error;
+  }
+
+  const eventWeek = data || [];
+
+  return {
+    eventWeek,
+    weekBeginDate,
+    nextWeekBeginDate,
+  };
 };
 
-const useEventWeek = () => {
+interface EventWeekOptions {
+  saved: boolean;
+  tabName: string
+}
+
+export const fetchEventWeek = async (
+  pageParam: Date,
+  options: EventWeekOptions,
+  user: User,
+): Promise<EventWeek> => {
+  if (pageParam !== null){
+  try {
+    const nextDate = await fetchNextDate(pageParam, options, user);
+    return await fetchEventWeekSB(nextDate, options, user);
+  } catch (error) {
+    console.error("Error fetching event week:", error);
+    throw error;
+  }
+  }
+  return null
+};
+
+const useEventWeek = ({ saved, tabName}: EventWeekOptions, user: User) => {
   const today = new Date();
+
   const {
     data,
-    isError,
+    status,
     isLoading,
     error,
+    isError,
     isFetching,
     hasNextPage,
     fetchNextPage,
+    isFetchingNextPage,
+    refetch,
   } = useInfiniteQuery({
-    queryKey: ["events"],
-    queryFn: ({ pageParam}) => fetchEventWeek(pageParam),
+    queryKey: ["events",saved,tabName],
+    queryFn: ({ pageParam = today}) =>
+      fetchEventWeek(pageParam, { saved, tabName}, user),
     initialPageParam: today,
-    getNextPageParam: (lastpage) => lastpage.nextWeekBeginDate,
-    staleTime: Infinity,
+    getNextPageParam: (lastPage) => lastPage.nextWeekBeginDate
   });
+
   const eventWeeks = data?.pages ?? [];
 
   return {
-    eventWeeks,
-    isError,
+    status,
     isLoading,
     error,
+    isError,
     isFetching,
     hasNextPage,
     fetchNextPage,
+    refetch,
+    isFetchingNextPage,
+    eventWeeks
   };
 };
 
 export default useEventWeek;
-
-

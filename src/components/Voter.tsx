@@ -1,179 +1,169 @@
 import { useAuth } from "@/hooks/Auth";
-import { voteFetch, voteUpsert } from "@/hooks/profileVote";
-import { Database } from "@/types/supabaseTypes";
+import { fetchProfileVote, voteUpsert } from "@/hooks/profileVote";
+
+import { ToVoteOn } from "@/types/types";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
-import { IconButton, Surface, Text, useTheme } from "react-native-paper";
-// import {}
-
-type FullEventInfo = Database["public"]["Tables"]["events"]["Row"];
-type EventInfo = Omit<FullEventInfo, "tickets_bought" | "capacity"> & {
-  profiles: { username: string }
-};
-type PostType = Database["public"]["Tables"]["posts"]["Row"];
-type CommentType = Database["public"]["Tables"]["comments"]["Row"];
-
-type ToVoteOn =  EventInfo | PostType | CommentType ;
+import { StyleSheet,} from "react-native";
+import { IconButton,Surface,Text,useTheme } from "react-native-paper";
+// import {}?
 interface VoterProps {
-  toVoteOn: ToVoteOn,
-  setToVoteOn: React.Dispatch<React.SetStateAction<ToVoteOn>>
+  toVoteOn: ToVoteOn;
+  setToVoteOn: React.Dispatch<React.SetStateAction<ToVoteOn>>;
 }
 
 type ProfileVote = {
-  profile_id: string;
-  voted_upon: string;
-  vote_up: boolean;
-  vote_down: boolean;
+  user_id: string | null;
+  voted_upon: string | null;
+  save_event: boolean | null;
+  hide_event: boolean | null;
 };
 
-// const Voter = ({ item }) => {
-
-//   const lastItemId = useRef(item.someId);
-//   const [liked, setLiked] = useState(item.liked);
-//   if (item.someId !== lastItemId.current) {
-//     lastItemId.current = item.someId;
-//     setLiked(item.liked);
-//   }
-
-//   return (
-//     <Button onPress={() => setLiked(true)}>
-//       <Text>{liked}</Text>
-//     </Button>
-//   );
-// };
-
-const Voter = ({ toVoteOn,setToVoteOn}: VoterProps): React.JSX.Element => {
+const Voter = ({ toVoteOn, setToVoteOn }: VoterProps): React.JSX.Element => {
   const { user } = useAuth();
   const theme = useTheme();
   //resets state because of flashlist recycling
-  const lastVotedOnId = useRef(toVoteOn.id);
   const [profileVote, setProfileVote] = useState<ProfileVote>({
-    profile_id: user.id,
-    voted_upon: toVoteOn.id,
-    vote_up: false,
-    vote_down: false,
+    user_id: null,
+    voted_upon: null,
+    save_event: null,
+    hide_event: null,
   });
+  const lastVotedOnId = useRef(toVoteOn.id);
+  if (toVoteOn.id !== lastVotedOnId.current) {
+    lastVotedOnId.current = toVoteOn.id;
+    fetchProfileVote(user, toVoteOn, setProfileVote);
+  }
 
   const handleVoteButton = (voteButton: string) => {
-    setProfileVote((prevState) => {
-      const newState = { ...prevState };
-      if (voteButton === "up") {
-        newState.vote_up = !prevState.vote_up;
-         if (prevState.vote_down === true) {
-          newState.vote_down = false}
-      } else {
-        newState.vote_down = !prevState.vote_down;
-        if (prevState.vote_up === true) {
-          newState.vote_up = false}
-      }
-      return newState;
-    });
-    const upsertProfileVote = async () => {
+    const upsertProfileVote = async (
+      oldProfileVote: ProfileVote,
+      newProfileVote: ProfileVote,
+    ) => {
       try {
-        const { error, voteVal} = await voteUpsert(user, profileVote, toVoteOn);
-        setToVoteOn((prevState)=>{
-          const newState = {...prevState}
-          newState.votes = voteVal
-          return newState
-        })
+        const { error, voteVal } = await voteUpsert(
+          user,
+          oldProfileVote,
+          newProfileVote,
+          toVoteOn,
+        );
         if (error) {
           throw error;
         }
+
+        setToVoteOn((prevState) => ({
+          ...prevState,
+          votes: voteVal,
+        }));
       } catch (error) {
         console.error("Error upserting profile vote:", error);
       }
     };
-    upsertProfileVote();
+    const oldState = { ...profileVote };
+    const newState = { ...profileVote };
+    if (voteButton === "save") {
+      if (newState.save_event) {
+        newState.save_event = false;
+      } else {
+        newState.save_event = true;
+        newState.hide_event = false;
+      }
+    } else if (voteButton === "down") {
+      if (newState.hide_event) {
+        newState.hide_event = false;
+      } else {
+        newState.hide_event = true;
+        newState.save_event = false;
+      }
+    }
+    setProfileVote(newState);
+    upsertProfileVote(oldState,newState);
   };
 
   useEffect(() => {
-    const fetchProfileVote = async () => {
-      try {
-        const { error, profileVote } = await voteFetch(user, toVoteOn.id);
-        if (profileVote.length > 0) {
-          const vote = profileVote[0];
-          setProfileVote({
-            profile_id: vote.profile_id,
-            voted_upon: vote.voted_upon,
-            vote_up: vote.vote_up,
-            vote_down: vote.vote_down,
-          });
-        }
-        if (error) {
-          throw error;
-        }
-      } catch (error) {
-        console.error("Error fetching profile vote:", error);
-      }
-    };
-    if (toVoteOn.id !== lastVotedOnId.current) {
-      lastVotedOnId.current = toVoteOn.id;
-      fetchProfileVote();
-    }
-    fetchProfileVote();
-  }, [toVoteOn.id, user]);
+    fetchProfileVote(user, toVoteOn, setProfileVote);
+  }, [toVoteOn.id, user, toVoteOn]);
 
-  const upIcon = profileVote.vote_up
-    ? "arrow-up-drop-circle"
-    : "arrow-up-drop-circle-outline";
-  const upColor = profileVote.vote_up
-    ? theme?.colors.tertiary
-    : theme?.colors.onTertiary;
-  const downIcon = profileVote.vote_down
-    ? "arrow-down-drop-circle"
-    : "arrow-down-drop-circle-outline";
-  const downColor = profileVote.vote_down
-    ? theme?.colors.error
-    : theme?.colors.onError;
+  const saveIcon = profileVote.save_event
+    ? "calendar-star"
+    : "calendar-star";
+  const saveColor = profileVote.save_event
+    ? theme?.colors.primary
+    : theme?.colors.inversePrimary;
+  // const downIcon = profileVote.hide_event
+  //   ? "arrow-down-drop-circle"
+  //   : "arrow-down-drop-circle-outline";
+  // const downColor = profileVote.hide_event
+  //   ? theme?.colors.error
+  //   : theme?.colors.onError;
 
   return (
-    <Surface style={styles.surface}>
-      <Text style={styles.text}>{"Interested?"}</Text>
-      <IconButton
+    <Surface theme={theme} style={styles.textVoteSurface} elevation={5}>
+    <Text style={{color:theme.colors.onPrimaryContainer,width:45,height:20,marginRight:-10}}>{profileVote.save_event ? "saved!" : "save?"}</Text>
+    <IconButton
         style={styles.voteButton}
-        icon={upIcon}
-        iconColor={upColor}
-        size={20}
-        onPress={() => handleVoteButton("up")}
+        icon={saveIcon}
+        iconColor={saveColor}
+        size={30}
+        onPress={() => handleVoteButton("save")}
       />
-      <Text style={styles.voteDisplay}>{`${toVoteOn.votes}`}</Text>
-      <IconButton
-        style={styles.voteButton}
-        icon={downIcon}
-        iconColor={downColor}
-        size={20}
-        onPress={() => handleVoteButton("down")}
-      />
-    </Surface>
+  </Surface>
+
+      // {/* <IconButton
+      //   style={styles.voteButton}
+      //   icon={downIcon}
+      //   iconColor={downColor}
+      //   size={20}
+      //   onPress={() => handleVoteButton("down")}
+      // /> */}
   );
 };
 
 const styles = StyleSheet.create({
-  text:{
-    textAlign:"center",
-    textAlignVertical:"center",
-    padding:0,
-    margin:0,
+  text: {
+    textAlign: "center",
+    textAlignVertical: "center",
+    padding: "auto",
+    margin: "auto",
   },
   surface: {
-    padding:0,
-    margin:0,
+    marginLeft:10,
+    padding:5,
+    // minWidth:"100%",
+    // padding: "auto",
+    // margin: "auto",
+    alignItems: "center",
+    // justifyContent: "space-between",
+    flexDirection: "row",
+    // flexWrap: "wrap",
+  },
+  container: {
+    minWidth:"100%",
+    padding: "auto",
+    margin: "auto",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
     flexWrap: "wrap",
-    borderRadius: 2,
   },
   voteDisplay: {
     textAlign: "center",
-    padding:0,
-    margin:0,
-
+    // padding: "auto",
+    // margin: "auto",
+    marginBottom:3,
+  },
+  textVoteSurface: {
+    flexDirection:"row",
+    alignItems: "center",
+    margin:5,
+    borderRadius:10,
+    padding:"auto",
+    paddingLeft:10,
+    paddingRight:0
   },
   voteButton: {
-    padding:0,
-    margin:0,
+    // padding: "auto",
+    marginRight:-2
   },
 });
 

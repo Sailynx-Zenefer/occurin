@@ -1,7 +1,7 @@
 import EventCreator from "@/components/EventCreator";
 
 
-const CreateEvent = () => {
+const CreateEventView = () => {
 
   
   return (
@@ -9,4 +9,4 @@ const CreateEvent = () => {
   );
 };
 
-export default CreateEvent;
+export default CreateEventView;

@@ -1,21 +1,7 @@
-import { Database } from "@/types/supabaseTypes";
+
 import { supabaseClient } from "../config/supabase-client";
 import { PostgrestError, User } from "@supabase/supabase-js";
-
-type FullEventInfo = Database["public"]["Tables"]["events"]["Row"];
-type EventInfo = Omit<FullEventInfo, "tickets_bought" | "capacity"> & {
-  profiles: { username: string };
-};
-
-type PostType = Database["public"]["Tables"]["posts"]["Row"];
-type CommentType = Database["public"]["Tables"]["comments"]["Row"];
-
-type ProfileVote = {
-  profile_id: string;
-  voted_upon: string;
-  vote_up: boolean;
-  vote_down: boolean;
-};
+import { ProfileVote, ToVoteOn } from "@/types/types";
 
 interface VoteFetch {
   error: PostgrestError;
@@ -33,8 +19,8 @@ export async function voteFetch(
 ): Promise<VoteFetch> {
   const { data: profileVote, error } = await supabaseClient
     .from("profiles_votes")
-    .select("profile_id,voted_upon,vote_up,vote_down")
-    .eq("profile_id", user.id)
+    .select("user_id,voted_upon,save_event,hide_event")
+    .eq("user_id", user.id)
     .eq("voted_upon", toVoteOnId)
     .throwOnError();
   if (error) {
@@ -45,32 +31,66 @@ export async function voteFetch(
 
 export async function voteUpsert(
   user: User,
-  profileVote: ProfileVote,
-  toVoteOn: EventInfo | PostType | CommentType,
+  oldProfileVote: ProfileVote,
+  newProfileVote: ProfileVote,
+  toVoteOn: ToVoteOn,
 ): Promise<VoteUpsert> {
-  let upVal = 0;
-  let downVal = 0;
-  if (profileVote.vote_up) {
-    upVal = 1;
-  } else {
-    upVal = 0;
-  }
-  if (profileVote.vote_down) {
-    downVal = -1;
-  } else {
-    downVal = 0;
+  let oldUpVal = oldProfileVote.save_event ? 1 : 0;
+  let newUpVal = newProfileVote.save_event ? 1 : 0;
+  let newUpValChange = 0;
+  if (oldUpVal === 0 && newUpVal === 1) {
+    newUpValChange = 1;
+  } else if (oldUpVal === 1 && newUpVal === 0) {
+    newUpValChange = -1;
   }
 
-  const voteVal = toVoteOn.votes + upVal + downVal;
-
+  let oldDownVal = oldProfileVote.hide_event ? 1 : 0;
+  let newDownVal = newProfileVote.hide_event ? 1 : 0;
+  let newDownValChange = 0;
+  if (oldDownVal === 0 && newDownVal === 1) {
+    newDownValChange = 1;
+  } else if (oldDownVal === 1 && newDownVal === 0) {
+    newDownValChange = -1;
+  }
+  const voteVal = toVoteOn.votes + newUpValChange - newDownValChange;
   const { error, status } = await supabaseClient
     .from("profiles_votes")
-    .upsert(profileVote, { onConflict: "profile_id, voted_upon" })
-    .eq("profile_id", user.id)
-    .eq("voted_upon", toVoteOn.id)
+    .upsert(newProfileVote, { onConflict: "user_id, voted_upon" })
     .throwOnError();
   if (error && status !== 406) {
     throw error;
   }
   return { error, voteVal };
 }
+
+
+
+export async function fetchProfileVote(
+  user : User,
+  toVoteOn : ToVoteOn, 
+  setProfileVote : React.Dispatch<React.SetStateAction<ProfileVote>>){
+  try {
+    const { error, profileVote : profileVoteFromSB } = await voteFetch(user, toVoteOn.id);
+    if (error) {
+      throw error;
+    }
+    if (profileVoteFromSB.length > 0) {
+      const vote = profileVoteFromSB[0];
+      setProfileVote({
+        user_id: vote.user_id,
+        voted_upon: vote.voted_upon,
+        save_event: vote.save_event,
+        hide_event: vote.hide_event,
+      });
+    }else if (profileVoteFromSB.length === 0) {
+      setProfileVote({
+        user_id: user.id,
+        voted_upon: toVoteOn.id,
+        save_event: false,
+        hide_event: false,
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching profile vote:", error);
+  }
+};

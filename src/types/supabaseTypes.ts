@@ -150,7 +150,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "events_profile_id_fkey"
+            foreignKeyName: "events_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_creator_id_fkey1"
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -226,6 +233,13 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_hosts_host_id_fkey1"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -390,28 +404,28 @@ export type Database = {
       }
       profiles_events: {
         Row: {
-          bookmarked: boolean | null
           bought_ticket: boolean | null
           created_at: string | null
           event_id: string | null
+          going: boolean | null
           id: string
-          profile_id: string | null
+          user_id: string | null
         }
         Insert: {
-          bookmarked?: boolean | null
           bought_ticket?: boolean | null
           created_at?: string | null
           event_id?: string | null
+          going?: boolean | null
           id?: string
-          profile_id?: string | null
+          user_id?: string | null
         }
         Update: {
-          bookmarked?: boolean | null
           bought_ticket?: boolean | null
           created_at?: string | null
           event_id?: string | null
+          going?: boolean | null
           id?: string
-          profile_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -422,8 +436,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profiles_events_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "profiles_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_events_user_id_fkey1"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -435,19 +456,19 @@ export type Database = {
           created_at: string | null
           id: string
           organiser_id: string | null
-          profile_id: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           organiser_id?: string | null
-          profile_id?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           organiser_id?: string | null
-          profile_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -458,10 +479,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profiles_organisers_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "profiles_organisers_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -470,33 +491,40 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          profile_id: string | null
-          vote_down: boolean
-          vote_up: boolean
+          save_event: boolean
+          user_id: string
+          hide_event: boolean
           voted_upon: string
         }
         Insert: {
           created_at?: string
           id?: string
-          profile_id?: string | null
-          vote_down?: boolean
-          vote_up?: boolean
+          save_event?: boolean
+          user_id: string
+          hide_event?: boolean
           voted_upon: string
         }
         Update: {
           created_at?: string
           id?: string
-          profile_id?: string | null
-          vote_down?: boolean
-          vote_up?: boolean
+          save_event?: boolean
+          user_id?: string
+          hide_event?: boolean
           voted_upon?: string
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_votes_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "profiles_votes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_votes_voted_upon_fkey"
+            columns: ["voted_upon"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]

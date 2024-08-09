@@ -1,21 +1,23 @@
-import { useState, useCallback, useEffect } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { useState, useEffect } from "react";
+import { StyleSheet, ScrollView, View, Image } from "react-native";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Surface, Text, TextInput, Divider } from "react-native-paper";
-import { SegmentedButtons } from "react-native-paper";
-import type React from "../../node_modules/@types/react";
 import {
-  DatePickerInput,
-  TimePickerModal,
-  enGB,
-  registerTranslation,
-} from "react-native-paper-dates";
+  Button,
+  Surface,
+  Text,
+  TextInput,
+  Divider,
+  Card,
+} from "react-native-paper";
+import type React from "../../node_modules/@types/react";
+import { enGB, registerTranslation } from "react-native-paper-dates";
 import { useAlerts } from "react-native-paper-alerts";
 import { supabaseClient } from "../config/supabase-client";
 import { useAuth } from "../hooks/Auth";
-import NativePaperMapboxSearch from "./NativePaperMapboxSearch";
-import CurrencyInput, { formatNumber } from "react-native-currency-input";
-import { Link, router } from "expo-router";
+import DateTimePicker from "./event-form/DateTimePicker";
+import TicketPricePicker from "./event-form/TicketPricePicker";
+import LocationPicker from "./event-form/LocationPicker";
+import { downloadImage, uploadImage } from "@/hooks/imageUtils";
 registerTranslation("en-GB", enGB);
 
 interface RHFormValues {
@@ -58,58 +60,12 @@ interface FormValues {
   creator_id: string;
 }
 
-interface TimePickerOutput {
-  hours: number;
-  minutes: number;
-}
-
 export default function EventCreator() {
   const [loading, setLoading] = useState(true);
+  const [imgUploading, setImgUploading] = useState(false);
+  const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
   const { user } = useAuth();
   const alerts = useAlerts();
-
-  function formatTime(date: Date) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-
-  const [visibleBegin, setVisibleBegin] = useState(false);
-  const [visibleFinish, setVisibleFinish] = useState(false);
-
-  const onDismissBegin = useCallback(() => {
-    setVisibleBegin(false);
-  }, [setVisibleBegin]);
-
-  const onDismissFinish = useCallback(() => {
-    setVisibleFinish(false);
-  }, [setVisibleFinish]);
-
-  const timePickOnConfirm =
-    (fieldName: string) =>
-    ({ hours, minutes }: TimePickerOutput) => {
-      if (fieldName === "eventBeginDate") {
-        setVisibleBegin(false);
-        const newDate = getValues("eventBeginDate") as Date;
-        newDate.setHours(hours);
-        newDate.setMinutes(minutes);
-        setValue("eventBeginDate", newDate);
-      } else {
-        setVisibleFinish(false);
-        const newDate = getValues("eventFinishDate") as Date;
-        newDate.setHours(hours);
-        newDate.setMinutes(minutes);
-        setValue("eventFinishDate", newDate);
-      }
-    };
-
-  const datePickOnChange =
-    (fieldName: keyof RHFormValues) => (newDate: Date | undefined) => {
-      if (newDate) {
-        const newMonthYear = getValues(fieldName) as Date;
-        newMonthYear.setFullYear(newDate.getFullYear());
-        newMonthYear.setMonth(newDate.getMonth(), newDate.getDate());
-        setValue("eventFinishDate", newDate);
-      }
-    };
 
   const {
     control,
@@ -117,7 +73,6 @@ export default function EventCreator() {
     formState: { errors },
     setValue,
     getValues,
-    watch,
   } = useForm<RHFormValues>({
     mode: "onBlur",
     defaultValues: {
@@ -139,7 +94,7 @@ export default function EventCreator() {
         },
       },
       ticketed: false,
-      ticketPrice: 0
+      ticketPrice: 0,
     },
   });
 
@@ -171,6 +126,7 @@ export default function EventCreator() {
       }
     } catch (error) {
       if (error instanceof Error) {
+        console.error(error);
         alerts.alert(error.message);
       }
     } finally {
@@ -178,337 +134,149 @@ export default function EventCreator() {
     }
   };
 
-  const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
-
   useEffect(() => {
-    const subscription = watch((value, { name, type }) =>
-      console.log(value, name, type),
-    );
-    return () => subscription.unsubscribe();
-  }, [watch]);
+    if (eventImageUrl)
+      downloadImage(eventImageUrl, setEventImageUrl, "avatars");
+  }, [eventImageUrl]);
 
   return (
-
-
-    <ScrollView contentContainerStyle={styles.eventCreator}>
-      
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.textInput}
-            placeholder="Give your event a name..."
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
-        name="eventName"
-      />
-      {errors.eventName && (
-        <Text style={styles.errorText}>This is required.</Text>
-      )}
-
-      <Controller
-        control={control}
-        rules={{ maxLength: 100 }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.textInput}
-            placeholder="Give your event a description..."
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
-        name="eventDescription"
-      />
-      <Divider />
-      <Controller
-        control={control}
-        rules={{ maxLength: 100 }}
-        render={({ field: { onChange, value } }) => (
-          <>
-            <Text>Does your event take place in person or is it online?</Text>
-            <SegmentedButtons
-              value={String(value)}
-              onValueChange={(newValue) =>
-                onChange(newValue === "true" ? true : false)
-              }
-              buttons={[
-                {
-                  value: "true",
-                  label: "In Person",
-                },
-                {
-                  value: "false",
-                  label: "Online",
-                },
-              ]}
-            />
-          </>
-        )}
-        name="inPerson"
-      />
-      <Divider />
-      <Controller
-        control={control}
-        rules={{ maxLength: 100 }}
-        render={({
-          field: {
-            onChange,
-            value: {
-              _option,
-              _option: { label },
-            },
-          },
-        }) => (
-          <View>
-            <Text>Where does your event take place?</Text>
-
-            {mapBoxToken ? (
-              <NativePaperMapboxSearch
-                accessToken={mapBoxToken}
-                options={{
-                  language: "en",
-                  country: "GB",
-                }}
-                onChangeTextAC={(searchText) => {
-                  if (searchText) {
-                    try {
-                      setValue("location._option.label", searchText);
-                    } catch (error) {
-                      console.error("setValue error:", error);
-                    }
-                  }
-                }}
-                onRetrieveSBRR={({
-                  features,
-                  features: [name_preferred, place_formatted, coordinates],
-                }) => {
-                  if (features) {
-                    try {
-                      if (name_preferred)
-                        setValue("location.name", `${name_preferred}`);
-                      if (place_formatted)
-                        setValue("location.address", `${place_formatted}`);
-                      if (coordinates)
-                        setValue("location.long", coordinates[0] || 0);
-                      setValue("location.lat", coordinates[1] || 0);
-                    } catch (error) {
-                      console.error("setValue error:", error);
-                    }
-                  }
-                }}
-                optionTextValue={_option}
-                placeholder={"Search for locations"}
-              />
-            ) : (
-              <Text>Mapbox token not provided</Text>
-            )}
-          </View>
-        )}
-        name="location"
-      />
-      {errors.location && (
-        <Text style={styles.errorText}>Please select a location?</Text>
-      )}
-      <Divider />
-      <Controller
-        control={control}
-        rules={{ maxLength: 100 }}
-        render={({ field: { onChange, value } }) => (
-          <>
-            <Text>Is your event ticketed?</Text>
-            <SegmentedButtons
-              value={String(value)}
-              onValueChange={(newValue) =>
-                onChange(newValue === "true" ? true : false)
-              }
-              buttons={[
-                {
-                  value: "true",
-                  label: "Ticketed",
-                },
-                {
-                  value: "false",
-                  label: "Not Ticketed",
-                },
-              ]}
-            />
-          </>
-        )}
-        name="ticketed"
-      />
-
-      <Divider />
-      <Text>Ticket Price</Text>
-      <Controller
-        control={control}
-        rules={{
-          required: true,
-        }}
-        render={({
-          field: {
-            onChange,
-            value
-          },
-        }) => (
-          <>
-            {/* <TextInput
+    <ScrollView contentContainerStyle={styles.scrollView}>
+      <Card style={styles.eventCreator}>
+        <Card.Title title={"Create a new event "} />
+        <Controller
+          control={control}
+          rules={{
+            required: true,
+          }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
               style={styles.textInput}
-              onChangeText={(priceText) => {
-                console.log(priceText);
-                if (priceText.length > 0) {
-                  const foundNumber = priceText.match(/\d+/g).join("");
-                  console.log("found", foundNumber);
-                  if (foundNumber.length > 0) {
-                    const display = formatNumber(+foundNumber, {
-                      separator: "",
-                      prefix: "£ ",
-                      precision: 2,
-                      delimiter: "",
-                      signPosition: "beforePrefix",
-                    });
-                    console.log("displ", display);
-                    onChange?.({
-                      numerical: onChange?.(parseInt(foundNumber, 100)),
-                      display: display,
-                    });
-                  }
-                }
-              }}
-              value={display}
-            /> */}
-            <CurrencyInput
+              placeholder="Give your event a name..."
+              onBlur={onBlur}
+              onChangeText={onChange}
               value={value}
-              onChangeValue={onChange}
-              renderTextInput={({onChangeText,value}) => {
-                return (
-                <TextInput
-                onChangeText={onChangeText}
-                value={value}
-                placeholder="£ 0.00"                />
-                )
-              }}
-              prefix="£ "
-              delimiter="."
-              separator=","
-              precision={2}
             />
-          </>
+          )}
+          name="eventName"
+        />
+        {errors.eventName && (
+          <Text style={styles.errorText}>This is required.</Text>
         )}
-        name="ticketPrice"
-      />
-      {errors.ticketPrice && (
-        <Text style={styles.errorText}>Please enter a ticket price</Text>
-      )}
 
-      <Text>Upload an image here</Text>
+        <Controller
+          control={control}
+          rules={{ maxLength: 100 }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              style={styles.textInput}
+              placeholder="Give your event a description..."
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
+          name="eventDescription"
+        />
+        <Divider />
+        <LocationPicker setValue={setValue} control={control} errors={errors} />
+        <Divider />
+        <TicketPricePicker control={control} errors={errors} />
+        <Divider />
 
-      <Surface style={styles.datePickers} elevation={1}>
+        <Divider />
+
         <Controller
           control={control}
           rules={{
             required: true,
           }}
-          render={({ field }) => (
+          render={({ field: { onChange, onBlur, value } }) => (
             <View>
-              <Surface elevation={2}>
-                <Text>Event Start:</Text>
+              {eventImageUrl ? (
+                <Image
+                  source={{ uri: eventImageUrl }}
+                  accessibilityLabel={"Event Image Preview"}
+                  style={[{ height: 200, width: 200 }, styles.eventImg, styles.image]}
+                />
+              ) : (
+                <View style={[{ height: 200, width: 200 }, styles.eventImg, styles.noImage]} />
+              )}
+              <View>
                 <Button
-                  onPress={() => setVisibleBegin(true)}
-                  uppercase={false}
-                  mode="outlined"
+                  onPress={() =>
+                    uploadImage(setEventImageUrl, setImgUploading, "event_imgs")
+                  }
+                  disabled={imgUploading}
                 >
-                  {formatTime(field.value)}
+                  {imgUploading ? "Uploading ..." : "Choose an image..."}
                 </Button>
-              </Surface>
-              <TimePickerModal
-                visible={visibleBegin}
-                onDismiss={onDismissBegin}
-                onConfirm={timePickOnConfirm("eventBeginDate")}
-              />
-              <DatePickerInput
-                mode="outlined"
-                locale="en-GB"
-                label=""
-                value={field.value}
-                onChange={datePickOnChange("eventBeginDate")}
-                inputMode="start"
-              />
+              </View>
             </View>
           )}
-          name="eventBeginDate"
+          name="imgUrl"
         />
-        {errors.eventBeginDate && (
-          <Text style={styles.errorText}>
-            Please select an event start date.
-          </Text>
+        {errors.imgUrl && (
+          <Text style={styles.errorText}>{"This is required."}</Text>
         )}
 
-        <Controller
+        <DateTimePicker
+          getValues={getValues}
+          setValue={setValue}
           control={control}
-          rules={{
-            required: true,
-          }}
-          render={({ field }) => (
-            <View>
-              <Text>Event end:</Text>
-              <Button
-                onPress={() => setVisibleFinish(true)}
-                uppercase={false}
-                mode="outlined"
-              >
-                {formatTime(field.value)}
-              </Button>
-              <TimePickerModal
-                visible={visibleFinish}
-                onDismiss={onDismissFinish}
-                onConfirm={timePickOnConfirm("eventFinishDate")}
-              />
-              <DatePickerInput
-                mode="outlined"
-                locale="en-GB"
-                label=""
-                value={field.value}
-                onChange={datePickOnChange("eventFinishDate")}
-                inputMode="start"
-              />
-            </View>
-          )}
-          name="eventFinishDate"
+          errors={errors}
         />
-
-        {errors.eventFinishDate && (
-          <Text style={styles.errorText}>
-            Please select an event start date.
-          </Text>
-        )}
-      </Surface>
-      <Surface style={styles.bottomButtons}>      <Button
-        uppercase={false}
-        mode="outlined"
-        onPress={handleSubmit(onSubmit)}
-      >
-        Create Event
-      </Button></Surface>
-
+        <Divider />
+        <Surface style={styles.bottomButtons}>
+          <Button
+            uppercase={false}
+            mode="outlined"
+            onPress={handleSubmit(onSubmit)}
+          >
+          <Text> {loading ? "Creating..." : "Create Event"}</Text> 
+          </Button>
+          <Text>{loading ? "Event..." : ""}</Text>
+        </Surface>
+      </Card>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  bottomButtons:{
+  eventImg: {
+    borderRadius: 5,
+    overflow: "hidden",
+    maxWidth: "100%",
+  },
+  image: {
+    objectFit: "cover",
+    paddingTop: 0,
+  },
+  noImage: {
+    backgroundColor: "#333",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "rgb(200, 200, 200)",
+    borderRadius: 5,
+  },
+  bottomButtons: {
     display: "flex",
     alignSelf: "stretch",
-    alignItems:"center",
-    justifyContent:"space-between",
+    alignItems: "center",
+    justifyContent: "space-between",
     flexDirection: "row-reverse",
-    paddingHorizontal:20
+    paddingHorizontal: 20,
+  },
+  scrollView: {
+    display: "flex",
+    alignItems: "flex-start",
+    flexDirection: "column",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    // backgroundColor: "lightgrey",
+    // borderStyle: "solid",
+    // borderColor: "blue",
+    // borderWidth: 5,
+    padding: 10,
   },
   eventCreator: {
     display: "flex",
@@ -522,15 +290,6 @@ const styles = StyleSheet.create({
     // borderWidth: 5,
     padding: 10,
     paddingLeft: 30,
-  },
-  datePickers: {
-    display: "flex",
-    alignItems: "flex-start",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    borderRadius: 2,
-    // padding: 5,
   },
   textInput: {
     // backgroundColor: "white",

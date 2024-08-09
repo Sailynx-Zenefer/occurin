@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from "react";
 import { supabaseClient } from "../config/supabase-client";
+import { Profile } from "@/types/types";
 
 // Create a context for authentication
 
@@ -41,9 +42,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         setInitialized(true);
       } catch (error) {
-        console.error("Error getting session:", error);
+        console.error("Error getting session or profile data:", error);
       }
     };
+
 
     const { data: listener } = supabaseClient.auth.onAuthStateChange(
       (_event, session) => {
@@ -54,10 +56,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     setData();
+
+
     return () => {
       listener?.subscription.unsubscribe();
     };
   }, []);
+
+
 
   const value = {
     session,
