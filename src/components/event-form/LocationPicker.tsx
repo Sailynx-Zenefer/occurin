@@ -1,6 +1,18 @@
-import { Control, Controller, FieldErrors, UseFormSetValue } from "react-hook-form";
-import { StyleSheet } from "react-native";
-import { Divider, SegmentedButtons, Surface, Text} from "react-native-paper";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  UseFormSetValue,
+} from "react-hook-form";
+import { StyleSheet, View } from "react-native";
+import {
+  Divider,
+  SegmentedButtons,
+  Surface,
+  Text,
+  TextInput,
+  useTheme,
+} from "react-native-paper";
 import NativePaperMapboxSearch from "./NativePaperMapboxSearch";
 
 type OptionType = {
@@ -32,11 +44,13 @@ interface RHFormValues {
 interface LocationPickerProps {
   control: Control<RHFormValues, any>;
   errors: FieldErrors<RHFormValues>;
-  setValue : UseFormSetValue<RHFormValues>
+  setValue: UseFormSetValue<RHFormValues>;
 }
 
-const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
-  const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
+const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
+  // const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
+  const mapBoxToken = null;
+  const theme = useTheme()
   return (
     <>
       <Controller
@@ -44,7 +58,7 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
         rules={{ maxLength: 100 }}
         render={({ field: { onChange, value } }) => (
           <>
-            <Text>Does your event take place in person or is it online?</Text>
+            <Text style={[styles.inputLabel,{marginVertical:10}]}>Does your event take place in person or is it online?</Text>
             <SegmentedButtons
               value={String(value)}
               onValueChange={(newValue) =>
@@ -65,7 +79,7 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
         )}
         name="inPerson"
       />
-      <Divider />
+      <Divider style={{marginTop:20}}/>
       <Controller
         control={control}
         rules={{ maxLength: 100 }}
@@ -78,8 +92,8 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
             },
           },
         }) => (
-          <Surface>
-            <Text>Where does your event take place?</Text>
+          <View >
+            <Text style={[styles.inputLabel,{marginVertical:10}]}>Where does your event take place?</Text>
 
             {mapBoxToken ? (
               <NativePaperMapboxSearch
@@ -104,9 +118,9 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
                   if (features) {
                     try {
                       if (name_preferred)
-                        setValue("location.name", `${name_preferred}`);
+                        setValue("location.name", `${JSON.stringify(name_preferred)}`);
                       if (place_formatted)
-                        setValue("location.address", `${place_formatted}`);
+                        setValue("location.address", `${JSON.stringify(place_formatted)}`);
                       if (coordinates)
                         setValue("location.long", coordinates[0] || 0);
                       setValue("location.lat", coordinates[1] || 0);
@@ -119,9 +133,46 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
                 placeholder={"Search for locations"}
               />
             ) : (
-              <Text>Mapbox token not provided</Text>
+              <Surface elevation={3} style={styles.manualInput}>
+                <Text style={{
+                  flexDirection:"row",
+                  padding:5,
+                  alignItems:"flex-start",
+                  justifyContent:"flex-start",
+                  textAlign:"justify",
+                  color:theme.colors.error,
+                  borderWidth:1,
+                  borderColor:theme.colors.error}}>
+                  {`Mapbox Search is disabled or free sessions have been used up.\n`}
+                  {`Please enter location manually:`}
+                </Text>
+                <View>
+                  <Text style={styles.inputLabel}>Location Name:</Text>
+                  <TextInput onChange={(name)=>{
+                    setValue("location.name", `${name}`);
+                  }}/>
+                </View>
+                <View>
+                  <Text>Location Address:</Text>
+                  <TextInput onChange={(address)=>{
+                    setValue("location.address", `${address}`);
+                  }}/>
+                </View>
+                <View>
+                  <Text>Location Longitude:</Text>
+                  <TextInput onChange={(long)=>{
+                    setValue("location.long", +`${long}`);
+                  }}/>
+                </View>
+                <View>
+                  <Text>Location Latitude:</Text>
+                  <TextInput onChange={(lat)=>{
+                    setValue("location.lat", +`${lat}`);
+                  }}/>
+                </View>
+              </Surface>
             )}
-          </Surface>
+          </View>
         )}
         name="location"
       />
@@ -133,8 +184,15 @@ const LocationPicker = ({ control, errors, setValue}: LocationPickerProps) => {
 };
 
 const styles = StyleSheet.create({
+  inputLabel:{
+    margin:5
+  },
+  manualInput:{
+    padding :10,
+    marginBottom:20,
+  },
   datePickers: {
-    margin:10,
+    margin: 10,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "row",
@@ -144,7 +202,7 @@ const styles = StyleSheet.create({
     // padding: 5,
   },
   errorText: {
-    margin:10,
+    margin: 10,
     color: "red",
     marginVertical: 5,
   },

@@ -1,14 +1,16 @@
 import { SafeAreaView, StyleSheet, View } from "react-native";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FlashList } from "@shopify/flash-list";
 import WeekScrollCard from "./WeekScrollCard";
 import "react-native-url-polyfill/auto";
 import useEventWeek from "@/hooks/useEventWeek";
-import { Surface, Text } from "react-native-paper";
+import { ActivityIndicator, Surface, Text } from "react-native-paper";
 import dayjs from "dayjs";
-import DayChipRibbon from "./DayChipRibbon";
+import DayChipFilter from "./DayChipFilter";
 import { useAuth } from "@/hooks/Auth";
 import { useFocusEffect } from "expo-router";
+import { DayFilter, EventInfo } from "@/types/types";
+import SyncToGoogleCal from "./SyncToGoogleCal";
 
 const dateIncrement = (date: Date, days: number): Date => {
   var result = new Date(date);
@@ -24,9 +26,12 @@ const SavedCalendar = () => {
     eventWeeks,
     isFetching,
     fetchNextPage,
+    isLoading,
     refetch,
     status
   } = useEventWeek({ saved: true, tabName:"saved-calendar",}, user);
+
+  const [eventsToSync,setEventsToSync] = useState<EventInfo[]>([])
 
   useFocusEffect(
     useCallback(() => {
@@ -34,12 +39,24 @@ const SavedCalendar = () => {
     }, [refetch])
   );
 
+  const [dayFilter,setDayFilter]= useState<DayFilter>({
+    Mon: true,
+    Tue: true,
+    Wed: true,
+    Thu: true,
+    Fri: true,
+    Sat: true,
+    Sun: true,
+  })
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.blurContainer}>
-        <DayChipRibbon />
+        <DayChipFilter dayFilter={dayFilter} setDayFilter={setDayFilter}/>
       </View>
-
+      <View style={[styles.blurContainer,{marginTop:40}]}>
+        <SyncToGoogleCal eventsToSync={eventsToSync}/>
+      </View>
       {eventWeeks.length > 0 ? null : (
         <Text style={styles.nothingText}>{"You have no events saved..."}</Text>
       )}
@@ -51,13 +68,14 @@ const SavedCalendar = () => {
             return null; 
           }
           return(
-          <WeekScrollCard 
+          <WeekScrollCard setEventsToSync={setEventsToSync}
           eventWeek={data.item.eventWeek} 
           refetch={refetch} isFetching={isFetching} 
-          tabName={"saved-calendar"} />)
+          tabName={"saved-calendar"}
+          dayFilter={dayFilter} />)
         }}
         numColumns={1}
-        extraData={[eventWeeks,isFetching,status]}
+        extraData={[eventWeeks,isFetching,status,eventsToSync]}
         estimatedItemSize={200 * 200}
         estimatedListSize={{ height: 1000, width: 700 }}
         refreshing={isFetching}
@@ -70,12 +88,12 @@ const SavedCalendar = () => {
           (item,index) => item ? `${index}saved-calendar${item.eventWeek.toString()}` : `${index}-null2`}
         ListHeaderComponentStyle={styles.headerStyle}
         ListHeaderComponent={() => <View></View>}
-        ListFooterComponentStyle={styles.footerStyle}
-        ListFooterComponent={() => (
-          <View>
-            {/* <Text>{isFetchingNextPage ? "Loading..." : null}</Text> */}
-          </View>
-        )}
+        ListFooterComponent={() => 
+          <>
+          {isLoading ? <ActivityIndicator size={"large"} style={styles.activityIndicator}/> : <></>}
+        <View style={styles.footerStyle}>
+        </View>
+        </>}
         ItemSeparatorComponent={({trailingItem }) => {
           if (!trailingItem || !trailingItem.eventWeek || trailingItem.eventWeek.length === 0) {
             return null; 
@@ -125,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     width: "100%",
-    height: 50,
+    height: 54,
   },
   nothingText: {
     display: "flex",
@@ -144,6 +162,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     width: "100%",
     height: 50,
+  },
+  activityIndicator: {
+    marginVertical: 20,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   safe: {
     flex: 1,

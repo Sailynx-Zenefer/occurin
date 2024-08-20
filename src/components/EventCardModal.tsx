@@ -21,13 +21,15 @@ import { downloadImage } from "@/hooks/imageUtils";
 interface EventCardProps {
   event: EventInfo;
   session: Session;
+  setEventVisible:React.Dispatch<React.SetStateAction<boolean>>
+  tabName : string
 }
 
 // const onSelect = (item: EventInfo)=>{
 //   router.replace('/event-screen');
 // }
 
-const EventCardModal = ({ event }: EventCardProps): React.JSX.Element => {
+const EventCardModal = ({ event, setEventVisible, tabName}: EventCardProps): React.JSX.Element => {
   dayjs.extend(relativeTime);
   const [eventState, setEventState] = useState<EventInfo>(event);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -119,7 +121,7 @@ Tickets cost : £${event.ticket_price}
         <Text style={styles.cardTitle2}> {timeAndUserInfo}</Text>
         <Card.Actions style={styles.cardActions}>
           
-            <Voter toVoteOn={eventState} setToVoteOn={setEventState} />
+            <Voter toVoteOn={eventState} setToVoteOn={setEventState} setEventVisible={setEventVisible} tabName={tabName}/>
             
         </Card.Actions>
       </Card>

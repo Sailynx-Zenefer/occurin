@@ -21,6 +21,16 @@ export type ProfileVote = {
   hide_event: boolean;
 };
 
+export type DayFilter = {
+  Mon: boolean
+  Tue: boolean
+  Wed: boolean
+  Thu: boolean
+  Fri: boolean
+  Sat: boolean
+  Sun: boolean
+};
+
 export interface EventWeekSB {
   eventWeek: EventInfo[] | [] | null;
   

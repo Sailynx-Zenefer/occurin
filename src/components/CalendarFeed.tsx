@@ -1,14 +1,15 @@
 import { SafeAreaView, StyleSheet, View } from "react-native";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FlashList } from "@shopify/flash-list";
 import WeekScrollCard from "./WeekScrollCard";
 import "react-native-url-polyfill/auto";
 import useEventWeek from "@/hooks/useEventWeek";
-import { Button, Surface, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Surface, Text } from "react-native-paper";
 import dayjs from "dayjs";
-import DayChipRibbon from "./DayChipRibbon";
 import { useAuth } from "@/hooks/Auth";
 import { useFocusEffect } from "expo-router";
+import DayChipFilter from "./DayChipFilter";
+import { DayFilter } from "@/types/types";
 
 const dateIncrement = (date: Date, days: number): Date => {
   var result = new Date(date);
@@ -25,17 +26,12 @@ const CalendarFeed = () => {
     isFetching,
     hasNextPage,
     fetchNextPage,
+    isLoading,
     eventWeeks,
     refetch,
     status
 
   } = useEventWeek({ saved: false, tabName:"index"}, user);
-
-  useFocusEffect(
-    useCallback(() => {
-      refetch()
-    }, [refetch])
-  );
 
   useEffect(()=>{
     if (status === "success"){
@@ -43,10 +39,21 @@ const CalendarFeed = () => {
     }},[status]
   )
 
+  const [dayFilter,setDayFilter]= useState<DayFilter>({
+    Mon: true,
+    Tue: true,
+    Wed: true,
+    Thu: true,
+    Fri: true,
+    Sat: true,
+    Sun: true,
+  })
+
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.blurContainer}>
-        <DayChipRibbon />
+        <DayChipFilter dayFilter={dayFilter} setDayFilter={setDayFilter}/>
       </View>
       <FlashList
         data={eventWeeks}
@@ -54,11 +61,12 @@ const CalendarFeed = () => {
           if (!data || !data.item || data.item.eventWeek.length === 0) {
             return null; 
           }
-          return(
-          <WeekScrollCard 
+
+          return(<WeekScrollCard 
           eventWeek={data.item.eventWeek} 
           refetch={refetch} isFetching={isFetching} 
-          tabName={"index"} />)
+          tabName={"index"}
+          dayFilter={dayFilter}/>)
         }}
         numColumns={1}
         estimatedItemSize={200 * 200}
@@ -72,10 +80,12 @@ const CalendarFeed = () => {
         onEndReachedThreshold={0.1}
         ListHeaderComponentStyle={styles.headerStyle}
         ListHeaderComponent={() => <View></View>}
-        ListFooterComponentStyle={styles.footerStyle}
-        ListFooterComponent={() => <View>
-
-        </View>}
+        ListFooterComponent={() => 
+          <>
+          {isLoading ? <ActivityIndicator style={styles.activityIndicator} size={"large"}/> : <></>}
+        <View style={styles.footerStyle}>
+        </View>
+        </>}
         ItemSeparatorComponent={({trailingItem }) => {
           if (!trailingItem || !trailingItem.eventWeek || trailingItem.eventWeek.length === 0) {
             return null; 
@@ -137,6 +147,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     width: "100%",
     height: 50,
+  },
+  activityIndicator: {
+    marginVertical: 20,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   safe: {
     flex: 1,

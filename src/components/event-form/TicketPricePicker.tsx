@@ -1,9 +1,5 @@
-import {
-  Control,
-  Controller,
-  FieldErrors,
-} from "react-hook-form";
-import { StyleSheet} from "react-native";
+import { Control, Controller, FieldErrors } from "react-hook-form";
+import { StyleSheet } from "react-native";
 import CurrencyInput from "react-native-currency-input";
 import { Divider, SegmentedButtons, Text, TextInput } from "react-native-paper";
 
@@ -38,18 +34,15 @@ interface TicketPricePickerProps {
   errors: FieldErrors<RHFormValues>;
 }
 
-const TicketPricePicker = ({
-  control,
-  errors,
-}: TicketPricePickerProps) => {
+const TicketPricePicker = ({ control, errors }: TicketPricePickerProps) => {
   return (
     <>
-      {" "}
       <Controller
         control={control}
         rules={{ maxLength: 100 }}
         render={({ field: { onChange, value } }) => (
           <>
+            <Divider style={{ marginVertical: 10 }} />
             <Text>Is your event ticketed?</Text>
             <SegmentedButtons
               value={String(value)}
@@ -71,7 +64,7 @@ const TicketPricePicker = ({
         )}
         name="ticketed"
       />
-      <Divider />
+      <Divider style={{ marginVertical: 20 }} />
       <Text>Ticket Price</Text>
       <Controller
         control={control}
@@ -135,7 +128,7 @@ const TicketPricePicker = ({
 
 const styles = StyleSheet.create({
   datePickers: {
-    margin:10,
+    margin: 10,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "row",

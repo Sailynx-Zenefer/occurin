@@ -142,7 +142,9 @@ export default function EventCreator() {
   return (
     <ScrollView contentContainerStyle={styles.scrollView}>
       <Card style={styles.eventCreator}>
-        <Card.Title title={"Create a new event "} />
+        <Card.Title 
+        titleStyle={{fontWeight:"bold",textAlign:"center"}}
+        title={"Create a new event "} />
         <Controller
           control={control}
           rules={{
@@ -177,13 +179,11 @@ export default function EventCreator() {
           )}
           name="eventDescription"
         />
-        <Divider />
+        <Divider style={{margin:20}}/>
         <LocationPicker setValue={setValue} control={control} errors={errors} />
-        <Divider />
+        <Divider style={{margin:20}}/>
         <TicketPricePicker control={control} errors={errors} />
-        <Divider />
-
-        <Divider />
+        <Divider style={{margin:20}}/>
 
         <Controller
           control={control}
@@ -217,23 +217,23 @@ export default function EventCreator() {
         {errors.imgUrl && (
           <Text style={styles.errorText}>{"This is required."}</Text>
         )}
-
         <DateTimePicker
           getValues={getValues}
           setValue={setValue}
           control={control}
           errors={errors}
         />
-        <Divider />
-        <Surface style={styles.bottomButtons}>
+        <Divider style={{margin:20}}/>
+        <Surface elevation={3} style={[styles.bottomButtons,{padding:10,borderRadius:10}]}>
           <Button
+          style={{borderRadius:10}}
             uppercase={false}
             mode="outlined"
             onPress={handleSubmit(onSubmit)}
           >
           <Text> {loading ? "Create Event" : "Create Event"}</Text> 
           </Button>
-          <Text>{loading ? "Creating..." : ""}</Text>
+          <Text style={{textAlign:"center",marginHorizontal:"auto"}}>{loading ? "Creating..." : ""}</Text>
         </Surface>
       </Card>
     </ScrollView>
@@ -292,9 +292,8 @@ const styles = StyleSheet.create({
     // borderStyle: "solid",
     // borderColor: "blue",
     // borderWidth: 5,
-    padding: 10,
-    paddingLeft: 30,
-    paddingBottom:50,
+    padding: 30,
+    paddingBottom:20,
     marginHorizontal:"auto",
     marginTop:30,
     marginBottom:50,

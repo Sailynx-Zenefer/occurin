@@ -1,65 +1,66 @@
-import { useState, useEffect } from 'react'
-import { supabaseClient } from '../config/supabase-client'
-import { StyleSheet, View, Alert } from 'react-native'
-import { Button, TextInput } from 'react-native-paper'
-import { Session } from '@supabase/supabase-js'
-import AvatarUploader from './AvatarUploader'
-import { ScrollView } from 'react-native'
-import { useAlerts } from 'react-native-paper-alerts'
-
+import { useState, useEffect } from "react";
+import { supabaseClient } from "../config/supabase-client";
+import { StyleSheet, View, Alert } from "react-native";
+import { Button, Surface, Text, TextInput, useTheme } from "react-native-paper";
+import { Session } from "@supabase/supabase-js";
+import AvatarUploader from "./AvatarUploader";
+import { ScrollView } from "react-native";
+import { useAlerts } from "react-native-paper-alerts";
 
 type ProfileUpdates = {
-  username: string
-  website: string
-  avatar_url: string
-  full_name: string,
-  profile_role: string,
-}
+  username: string;
+  website: string;
+  avatar_url: string;
+  full_name: string;
+  profile_role: string;
+};
 
 export default function Profile({ session }: { session: Session }) {
-  const [loading, setLoading] = useState(true)
-  const [username, setUsername] = useState('')
-  const [website, setWebsite] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const [profileRole, setProfileRole] = useState('')
-  const alerts = useAlerts()
-  
+  const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState("");
+  const [website, setWebsite] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [profileRole, setProfileRole] = useState("");
+  const [allowEdit,setAllowEdit] = useState(false);
+  const alerts = useAlerts();
+  const theme = useTheme()
+
   useEffect(() => {
     async function getProfile() {
       try {
-        setLoading(true)
-        if (!session?.user) throw new Error('No user on the session!')
-  
+        setLoading(true);
+        if (!session?.user) throw new Error("No user on the session!");
+
         let { data, error, status } = await supabaseClient
-          .from('profiles')
-          .select(`created_at, updated_at, username, full_name, avatar_url, website, profile_role`)
-          .eq('id', session?.user.id) 
-          .single()
+          .from("profiles")
+          .select(
+            `created_at, updated_at, username, full_name, avatar_url, website, profile_role`,
+          )
+          .eq("id", session?.user.id)
+          .single();
         if (error && status !== 406) {
-          throw error
+          throw error;
         }
-  
+
         if (data) {
-          setUsername(data?.username || '')
-          setWebsite(data?.website || '')
-          setAvatarUrl(data?.avatar_url || '')
-          setFullName(data?.full_name || '')
-          setProfileRole(data?.profile_role || '')
+          setUsername(data?.username || "");
+          setWebsite(data?.website || "");
+          setAvatarUrl(data?.avatar_url || "");
+          setFullName(data?.full_name || "");
+          setProfileRole(data?.profile_role || "");
         }
       } catch (error) {
-        
         if (error instanceof Error) {
-          Alert.alert("Error:",error.message)
+          Alert.alert("Error:", error.message);
         }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    if (session) getProfile()
-  }, [session])
-
+    if (session) getProfile();
+  }, [session]);
 
   async function updateProfile({
     username,
@@ -69,8 +70,8 @@ export default function Profile({ session }: { session: Session }) {
     profile_role,
   }: ProfileUpdates) {
     try {
-      setLoading(true)
-      if (!session?.user) throw new Error('No user on the session!')
+      setLoading(true);
+      if (!session?.user) throw new Error("No user on the session!");
 
       const updates = {
         id: session?.user.id,
@@ -79,80 +80,171 @@ export default function Profile({ session }: { session: Session }) {
         avatar_url,
         full_name,
         profile_role,
-        updated_at: new Date().toISOString() 
-      }
+        updated_at: new Date().toISOString(),
+      };
 
-      let { error } = await supabaseClient.from('profiles').upsert(updates)
+      let { error } = await supabaseClient.from("profiles").upsert(updates);
 
       if (error) {
-        throw error
+        throw error;
       }
     } catch (error) {
       if (error instanceof Error) {
-        alerts.alert(error.message)
+        alerts.alert(error.message);
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
-    
-    <ScrollView style={styles.container}>
-            <View>
-      <AvatarUploader
-        size={200}
-        url={avatarUrl}
-        onUpload={(url: string) => {
-          setAvatarUrl(url)
-          updateProfile({ username, website,full_name : fullName,profile_role : profileRole, avatar_url: avatarUrl })
-        }}
-      />
-    </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <TextInput label="Email" value={session?.user?.email} disabled />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <TextInput label="Username" value={username || ''} onChangeText={(text) => setUsername(text)} />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <TextInput label="Website" value={website || ''} onChangeText={(text) => setWebsite(text)} />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <TextInput label="Full Name" value={fullName || ''} onChangeText={(text) => setFullName(text)} />
-      </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.topPage}>
+        <AvatarUploader
+          size={200}
+          url={avatarUrl}
+          onUpload={(url: string) => {
+            setAvatarUrl(url);
+            updateProfile({
+              username,
+              website,
+              full_name: fullName,
+              profile_role: profileRole,
+              avatar_url: avatarUrl,
+            });
+          }}
+        />
+      
 
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          onPress={() => updateProfile({ username, website,full_name : fullName,profile_role : profileRole, avatar_url: avatarUrl })}
+      <Surface style={styles.changeDetails}>
+        <Text style={styles.title}>{"Profile Details"}</Text>
+        <View style={[styles.verticallySpaced, styles.mt20]}>
+          <TextInput label="Email" value={session?.user?.email} disabled />
+        </View>
+        <View style={styles.verticallySpaced}>
+          <TextInput
+            disabled={allowEdit}
+            label="Username"
+            value={username || ""}
+            onChangeText={(text) => setUsername(text)}
+          />
+        </View>
+        <View style={styles.verticallySpaced}>
+          <TextInput
+            label="Website"
+            value={website || ""}
+            onChangeText={(text) => setWebsite(text)}
+          />
+        </View>
+        <View style={styles.verticallySpaced}>
+          <TextInput
+            label="Full Name"
+            value={fullName || ""}
+            onChangeText={(text) => setFullName(text)}
+          />
+        </View>
+        <View style={[styles.buttonRow]}>
+                  <Button
+        mode={"outlined"}
+          style={styles.button1}
+          buttonColor={theme.colors.tertiary}
+          textColor={theme.colors.onTertiary}
+          onPress={() =>{
+
+          }}
           disabled={loading}
         >
-          {loading ? 'Loading ...' : 'Update'}
+          {loading ? "Editing ..." : "Edit"}
         </Button>
-      </View>
-
-
-
-      <View style={styles.verticallySpaced}>
-        <Button onPress={() => supabaseClient.auth.signOut()} >
-        "Sign Out"
+        <Button
+        mode={"outlined"}
+          style={styles.button1}
+          buttonColor={theme.colors.secondary}
+          textColor={theme.colors.onSecondary}
+          onPress={() =>
+            updateProfile({
+              username,
+              website,
+              full_name: fullName,
+              profile_role: profileRole,
+              avatar_url: avatarUrl,
+            })
+          }
+          disabled={loading}
+        >
+          {loading ? "Loading ..." : "Update"}
         </Button>
+        </View>
+      </Surface>
       </View>
+    
+
+        <Button
+        mode={"outlined"}
+          style={styles.button2}
+          buttonColor={theme.colors.secondary}
+          textColor={theme.colors.onSecondary}
+          onPress={() => supabaseClient.auth.signOut()}
+        >
+          {"Sign Out"}
+        </Button>
+
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
+  changeDetails:{
+    marginVertical:10,
+    marginLeft:"auto",
+    marginRight:"auto",
+    padding:20,
+    borderRadius:10
+  },
+  topPage:{
+    flexDirection:"row",
+    padding:"auto",
+    flexWrap:"wrap",
+    alignItems:"center",
+    justifyContent:"space-between"
+  },
   container: {
-    marginTop: 40,
-    padding: 12,
+    marginTop: 10,
+    marginBottom: 40,
+    marginLeft:"auto",
+    marginRight:"auto",
+    padding:"auto",
+    alignItems:"center",
+    justifyContent:"space-between",
+  },
+  button1: {
+    marginLeft: "auto",
+    marginRight: "auto",
+    marginTop:"auto",
+    minWidth:10,
+    paddingHorizontal:5
+  },
+  button2: {
+    marginRight: 30,
+    marginLeft:"auto",
+    marginVertical:20,
+    minWidth:10,
+    paddingHorizontal:5
+  },
+  buttonRow:{
+    flexDirection:"row",
+    justifyContent:"center"
+
   },
   verticallySpaced: {
     paddingTop: 4,
     paddingBottom: 4,
-    alignSelf: 'stretch',
   },
   mt20: {
-    marginTop: 20,
+    marginTop:5,
   },
-})
+  title:{
+    textAlign:"center",
+    fontWeight:"bold"
+  }
+});

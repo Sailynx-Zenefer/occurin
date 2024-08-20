@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/Auth";
 import { fetchProfileVote, voteUpsert } from "@/hooks/profileVote";
 
 import { ToVoteOn } from "@/types/types";
+import { useFocusEffect } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet,} from "react-native";
 import { IconButton,Surface,Text,useTheme } from "react-native-paper";
@@ -9,6 +10,8 @@ import { IconButton,Surface,Text,useTheme } from "react-native-paper";
 interface VoterProps {
   toVoteOn: ToVoteOn;
   setToVoteOn: React.Dispatch<React.SetStateAction<ToVoteOn>>;
+  setEventVisible : React.Dispatch<React.SetStateAction<boolean>>;
+  tabName: string
 }
 
 type ProfileVote = {
@@ -18,7 +21,7 @@ type ProfileVote = {
   hide_event: boolean | null;
 };
 
-const Voter = ({ toVoteOn, setToVoteOn }: VoterProps): React.JSX.Element => {
+const Voter = ({ toVoteOn, setToVoteOn, setEventVisible, tabName}: VoterProps): React.JSX.Element => {
   const { user } = useAuth();
   const theme = useTheme();
   //resets state because of flashlist recycling
@@ -62,8 +65,10 @@ const Voter = ({ toVoteOn, setToVoteOn }: VoterProps): React.JSX.Element => {
     const newState = { ...profileVote };
     if (voteButton === "save") {
       if (newState.save_event) {
+        setEventVisible(false)
         newState.save_event = false;
       } else {
+        setEventVisible(true)
         newState.save_event = true;
         newState.hide_event = false;
       }
@@ -82,6 +87,10 @@ const Voter = ({ toVoteOn, setToVoteOn }: VoterProps): React.JSX.Element => {
   useEffect(() => {
     fetchProfileVote(user, toVoteOn, setProfileVote);
   }, [toVoteOn.id, user, toVoteOn]);
+
+  // useFocusEffect(() => {
+  //   fetchProfileVote(user, toVoteOn, setProfileVote);
+  // });
 
   const saveIcon = profileVote.save_event
     ? "calendar-star"

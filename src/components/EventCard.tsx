@@ -1,7 +1,6 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import {
   Avatar,
-  Button,
   Card,
   Chip,
   IconButton,
@@ -19,9 +18,8 @@ import { Session } from "@supabase/supabase-js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useEffect, useState } from "react";
-import { router } from "expo-router";
 
-import { EventInfo, RefetchType } from "../types/types";
+import { DayFilter, EventInfo, RefetchType } from "../types/types";
 import { downloadImage } from "@/hooks/imageUtils";
 import EventCardModal from "./EventCardModal";
 
@@ -29,21 +27,31 @@ interface EventCardProps {
   event: EventInfo;
   session: Session;
   refetch: RefetchType;
+  dayFilter : DayFilter,
+  loading : boolean,
+  setLoading : React.Dispatch<React.SetStateAction<boolean>>
+  tabName : string
+  setEventsToSync? : React.Dispatch<React.SetStateAction<EventInfo[]>>
 }
-
-// const onSelect = (item: EventInfo)=>{
-//   router.replace('/event-screen');
-// }
 
 const EventCard = ({
   event,
   session,
-  refetch,
+  dayFilter,
+  loading,
+setLoading,
+tabName,
+setEventsToSync
 }: EventCardProps): React.JSX.Element => {
   dayjs.extend(relativeTime);
   const [eventState, setEventState] = useState<EventInfo>(event);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [eventVisible, setEventVisible] = useState(true);
+  const [eventVisibleFilter, setEventVisibleFilter] = useState(true);
+  const dayShort = dayjs(event.begin_time).format("ddd")
+
   const timeAndUserInfo = `Posted ${dayjs().to(dayjs(event.created_at))} by ${eventState.profiles.username}`;
   const eventDay = dayjs(event.begin_time).format("dddd D MMMM");
   const theme = useTheme();
@@ -64,7 +72,7 @@ const EventCard = ({
       alignItems: "stretch",
       justifyContent: "flex-start",
       marginHorizontal: 5,
-      backgroundColor: dayColors[dayjs(event.begin_time).format("ddd")],
+      backgroundColor: dayColors[dayShort],
     },
     textOver: {
       color: theme.colors.onTertiary,
@@ -83,6 +91,18 @@ const EventCard = ({
     },
   });
 
+  useEffect(()=>{
+    if(tabName === "saved-calendar"){
+    setEventsToSync((prevToSync)=>{
+      const newToSync = [...prevToSync]
+      if (!prevToSync.find((eventItem)=>(eventItem.id === event.id))){
+        newToSync.push(event)
+        console.log(newToSync)
+        return newToSync
+      }else return prevToSync
+    })}
+  },[setEventsToSync,event,tabName])
+
   useEffect(() => {
     if (eventState.profiles.avatar_url)
       downloadImage(eventState.profiles.avatar_url, setAvatarUrl, "avatars");
@@ -93,63 +113,74 @@ const EventCard = ({
       downloadImage(eventState.img_url, setEventImageUrl, "event_imgs");
   }, [eventState.img_url]);
 
-  const [visible, setVisible] = useState(false);
+  useEffect(()=>{
+    if (dayFilter[dayShort])
+      {setEventVisibleFilter(true)
+    }else{
+      setEventVisibleFilter(false)
+    }
 
-  const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
-  const containerStyle = { backgroundColor: "transparent", padding: 0, margin:'auto'};
+  },[dayFilter,dayShort])
+
+  const showModal = () => setModalVisible(true);
+  const hideModal = () => setModalVisible(false);
+
   return (
     <>
-      <Surface elevation={1}>
-        <Chip style={dynmStyles.day}>
-          <Text style={{ color: theme.colors.onPrimary }}>{eventDay}</Text>
-        </Chip>
-      </Surface>
-      <Card style={styles.card} elevation={3}>
-        <View style={styles.cardTitleBodyAvatar}>
-          <View style={styles.container}>
-            <Text style={dynmStyles.textOver}>{`${event.votes}`}</Text>
-            <IconButton
-              style={styles.starOver}
-              icon={"star"}
-              iconColor={theme?.colors.tertiary}
-              size={44}
-            />
-          </View>
+      {eventVisibleFilter && eventVisible && (
+        <>
+          <Surface elevation={1}>
+            <Chip style={dynmStyles.day}>
+              <Text style={{ color: theme.colors.onPrimary }}>{eventDay}</Text>
+            </Chip>
+          </Surface>
+          <Card style={styles.card} elevation={3}>
+            <View style={styles.cardTitleBodyAvatar}>
+              <View style={styles.container}>
+                <Text style={dynmStyles.textOver}>{`${event.votes}`}</Text>
+                <IconButton
+                  style={styles.starOver}
+                  icon={"star"}
+                  iconColor={theme?.colors.tertiary}
+                  size={44}
+                />
+              </View>
 
-          <View style={styles.cardTitleBody}>
-            <Text style={styles.cardTitle}>{event.title}</Text>
-          </View>
-        </View>
-        <Pressable
-          onPress={() => {
-            showModal();
-          }}
-        >
-          <Card.Cover
-            style={styles.cardCover}
-            source={{ uri: eventImageUrl }}
-          />
-        </Pressable>
-        <Text style={styles.cardTitle2}> {timeAndUserInfo}</Text>
-        <Card.Actions style={styles.cardActions}>
-          <Avatar.Image
-            style={styles.avatar}
-            size={35}
-            source={{ uri: avatarUrl }}
-          />
-          <Voter toVoteOn={eventState} setToVoteOn={setEventState} />
-        </Card.Actions>
-      </Card>
-      <Portal>
-        <Modal
-          visible={visible}
-          onDismiss={hideModal}
-          contentContainerStyle={containerStyle}
-        >
-          <EventCardModal event={event} session={session} />
-        </Modal>
-      </Portal>
+              <View style={styles.cardTitleBody}>
+                <Text style={styles.cardTitle}>{event.title}</Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={() => {
+                showModal();
+              }}
+            >
+              <Card.Cover
+                style={styles.cardCover}
+                source={{ uri: eventImageUrl }}
+              />
+            </Pressable>
+            <Text style={styles.cardTitle2}> {timeAndUserInfo}</Text>
+            <Card.Actions style={styles.cardActions}>
+              <Avatar.Image
+                style={styles.avatar}
+                size={35}
+                source={{ uri: avatarUrl }}
+              />
+              <Voter toVoteOn={eventState} setToVoteOn={setEventState} setEventVisible={setEventVisible} tabName={tabName}/>
+            </Card.Actions>
+          </Card>
+          <Portal>
+            <Modal
+              visible={modalVisible}
+              onDismiss={hideModal}
+              contentContainerStyle={styles.containerStyle}
+            >
+              <EventCardModal event={event} session={session} setEventVisible={setEventVisible} tabName={tabName}/>
+            </Modal>
+          </Portal>
+        </>
+      )}
     </>
   );
 };
@@ -223,6 +254,11 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginRight: "auto",
     padding: 0,
+  },
+  containerStyle: {
+    backgroundColor: "transparent",
+    padding: 0,
+    margin: "auto",
   },
   cardCover: {
     objectFit: "contain",

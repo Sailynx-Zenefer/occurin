@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Control, Controller, FieldErrors, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
-import { Button, Surface, Text } from "react-native-paper";
+import { Button, Divider, Surface, Text } from "react-native-paper";
 import { DatePickerInput, TimePickerModal } from "react-native-paper-dates";
 
 interface TimePickerOutput {
@@ -88,7 +88,7 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
     };
 
   return (
-    <Surface style={styles.datePickers} elevation={1}>
+    <Surface style={styles.datePickers} elevation={3}>
       <Controller
         control={control}
         rules={{
@@ -96,16 +96,17 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
         }}
         render={({ field }) => (
           <>
-            <Surface elevation={2}>
-              <Text>Event Start:</Text>
+            <View>
+              <Text style={styles.inputLabel}>Event Start:</Text>
               <Button
+              style={styles.buttonStyle}
                 onPress={() => setVisibleBegin(true)}
                 uppercase={false}
                 mode="outlined"
               >
                 {formatTime(field.value)}
               </Button>
-            </Surface>
+            </View>
             <TimePickerModal
               visible={visibleBegin}
               onDismiss={onDismissBegin}
@@ -126,7 +127,6 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
       {errors.eventBeginDate && (
         <Text style={styles.errorText}>Please select an event start date.</Text>
       )}
-
       <Controller
         control={control}
         rules={{
@@ -134,8 +134,9 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
         }}
         render={({ field }) => (
           <View>
-            <Text>Event end:</Text>
+            <Text style={styles.inputLabel} >Event end:</Text>
             <Button
+            style={styles.buttonStyle}
               onPress={() => setVisibleFinish(true)}
               uppercase={false}
               mode="outlined"
@@ -147,6 +148,7 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
               onDismiss={onDismissFinish}
               onConfirm={timePickOnConfirm("eventFinishDate")}
             />
+            
             <DatePickerInput
               mode="outlined"
               locale="en-GB"
@@ -155,7 +157,9 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
               onChange={datePickOnChange("eventFinishDate")}
               inputMode="start"
             />
+            
           </View>
+
         )}
         name="eventFinishDate"
       />
@@ -164,19 +168,28 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
         <Text style={styles.errorText}>Please select an event start date.</Text>
       )}
     </Surface>
+    
   );
 };
 
 const styles = StyleSheet.create({
+  inputLabel:{
+    margin:5
+  },
   datePickers: {
-    margin:50,
+    margin:5,
+    padding:20,
+    borderRadius:10,
+    flex:1,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "column",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    borderRadius: 2,
     // padding: 5,
+  },
+  buttonStyle:{
+    marginVertical:5
   },
   errorText: {
     color: "red",

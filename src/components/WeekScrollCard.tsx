@@ -1,26 +1,41 @@
-import { EventInfo, EventWeek, RefetchType } from "@/types/types";
+import { DayFilter, EventInfo, EventWeek, RefetchType } from "@/types/types";
 import EventCard from "./EventCard";
 import { useAuth } from "@/hooks/Auth";
 import { FlashList } from "@shopify/flash-list";
 import { StyleSheet, View } from "react-native";
-import { Button, Chip, Surface, Text } from "react-native-paper";
+import { ActivityIndicator, Chip, Surface, Text } from "react-native-paper";
+import { useEffect, useState } from "react";
 
 interface WeekScrollCardProps {
   eventWeek: EventInfo[];
   refetch: RefetchType;
   isFetching: boolean;
   tabName : string
+  dayFilter : DayFilter
+  setEventsToSync? : React.Dispatch<React.SetStateAction<EventInfo[]>>
 }
 
 const WeekScrollCard = ({
   eventWeek,
   refetch,
   isFetching,
-  tabName
+  tabName,
+  dayFilter,
+  setEventsToSync
 }: WeekScrollCardProps): React.JSX.Element => {
   const { session } = useAuth();
 
-  return (
+  const [loading,setLoading] = useState(true)
+
+  useEffect(()=>{
+    if(eventWeek){
+      setLoading(false)
+    }
+  },[eventWeek])
+  
+
+
+  return (loading ? <ActivityIndicator/> :
     <View style={styles.viewStyle}>
       <Surface elevation={1} style={styles.surfaceStyle}>
         <Chip elevation={1}>
@@ -30,9 +45,15 @@ const WeekScrollCard = ({
       <FlashList
         data={eventWeek}
         renderItem={({ item: eventInfo }) => (
-          <EventCard event={eventInfo} session={session} refetch={refetch} />
+          <EventCard event={eventInfo}
+          session={session} refetch={refetch}
+          dayFilter={dayFilter}
+          loading={loading}
+          setLoading={setLoading}
+          tabName={tabName}
+          setEventsToSync={setEventsToSync}/>
         )}
-        extraData={[eventWeek,isFetching]}
+        extraData={[eventWeek,isFetching,setEventsToSync]}
         refreshing={isFetching}
         numColumns={1}
         estimatedItemSize={200 * 200}
