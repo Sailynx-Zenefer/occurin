@@ -1,4 +1,8 @@
-# Occurin :sunny: :newspaper:
+<div align="center">
+<img src="./src/assets/splash.png" style="width:25%">
+</div>
+
+# Occurin
 
 A social events app that lets users browse and sign up to events.
 This project is an app designed to work across devices
