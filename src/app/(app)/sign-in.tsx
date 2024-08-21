@@ -22,39 +22,56 @@ WebBrowser.maybeCompleteAuthSession(); // required for web only
 const redirectTo = makeRedirectUri();
 
 const createSessionFromUrl = async (url: string) => {
-  const { params, errorCode } = QueryParams.getQueryParams(url);
+  try {
+    const { params, errorCode } = QueryParams.getQueryParams(url);
 
-  if (errorCode) throw new Error(errorCode);
-  const { access_token, refresh_token } = params;
+    if (errorCode) throw new Error(errorCode);
 
-  if (!access_token) return;
+    const { access_token, refresh_token } = params || {};
 
-  const { data, error } = await supabaseClient.auth.setSession({
-    access_token,
-    refresh_token,
-  });
-  if (error) throw error;
-  return data.session;
+    if (!access_token) {
+      console.error('Access token is missing from the URL');
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.setSession({
+      access_token,
+      refresh_token,
+    });
+
+    if (error) throw error;
+
+    return data.session;
+  } catch (err) {
+    console.error('Error creating session from URL:', err);
+  }
 };
 
 const performOAuth = async () => {
-  const { data, error } = await supabaseClient.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true,
-    },
-  });
-  if (error) throw error;
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+        skipBrowserRedirect: true,
+      },
+    });
 
-  const res = await WebBrowser.openAuthSessionAsync(
-    data?.url ?? "",
-    redirectTo,
-  );
+    if (error) throw error;
 
-  if (res.type === "success") {
-    const { url } = res;
-    await createSessionFromUrl(url);
+    if (data?.url) {
+      const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+      if (res.type === "success" && res.url) {
+        await createSessionFromUrl(res.url);
+      } else {
+        console.error('OAuth session failed:', res);
+      }
+    } else {
+      console.error('No URL returned for OAuth');
+    }
+  } catch (err) {
+    console.error('Error during OAuth:', err);
   }
 };
 
@@ -69,17 +86,28 @@ export default function SignIn() {
   const theme = useTheme();
   const alerts = useAlerts();
   const url = Linking.useURL();
-  if (url) createSessionFromUrl(url);
+  
+useEffect(() => {
+  if (url) {
+    createSessionFromUrl(url).catch(err =>
+      console.error('Error in useURL effect:', err)
+    );
+  }
+}, [url]);
 
-  useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+useEffect(() => {
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
       setSession(session);
-    });
+    }
+  }).catch(error => console.error('Error fetching session:', error));
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (session) {
       setSession(session);
-    });
-  }, []);
+    }
+  });
+}, []);
 
   useEffect(() => {
     if (session) {
@@ -89,24 +117,38 @@ export default function SignIn() {
 
   async function signUpWithEmail() {
     setLoading(true);
-    const { error } = await supabaseClient.auth.signUp({
-      email: signUpEmail,
-      password: signUpPassword,
-    });
-
-    if (error) alerts.alert(error.message);
-    setLoading(false);
+    try {
+      const { error } = await supabaseClient.auth.signUp({
+        email: signUpEmail,
+        password: signUpPassword,
+      });
+  
+      if (error) {
+        alerts.alert(error.message);
+      }
+    } catch (err) {
+      console.error('Sign-up error:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function signInWithEmail() {
     setLoading(true);
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    if (error) alerts.alert(error.message);
-    setLoading(false);
+    try {
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+  
+      if (error) {
+        alerts.alert(error.message);
+      }
+    } catch (err) {
+      console.error('Sign-in error:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const sendMagicLink = async (email: string) => {

@@ -28,6 +28,7 @@ to run yourself....
 ```bash
 npm install
 ```
+
 or..
 
 ```bash
@@ -35,6 +36,7 @@ yarn
 ```
 
 then run using...
+
 ```bash
 npx expo start
 ```
