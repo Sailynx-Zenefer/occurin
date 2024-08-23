@@ -78,7 +78,7 @@ const EventCardModal = ({ event, setEventVisible, tabName}: EventCardProps): Rea
       <Card style={styles.card} elevation={3}>
         <View style={styles.cardTitleBodyAvatar}>
           <View style={styles.container}>
-            <Text style={dynmStyles.textOver}>{`${event.votes}`}</Text>
+            <Text style={dynmStyles.textOver}>{`${event.votes !== null? event.votes : 0}`}</Text>
             <IconButton
               style={styles.starOver}
               icon={"star"}

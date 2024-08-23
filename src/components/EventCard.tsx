@@ -97,7 +97,6 @@ setEventsToSync
       const newToSync = [...prevToSync]
       if (!prevToSync.find((eventItem)=>(eventItem.id === event.id))){
         newToSync.push(event)
-        console.log(newToSync)
         return newToSync
       }else return prevToSync
     })}

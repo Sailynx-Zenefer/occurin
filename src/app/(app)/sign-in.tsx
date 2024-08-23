@@ -9,29 +9,41 @@ import {
   Surface,
   useTheme,
 } from "react-native-paper";
-import { supabaseClient } from "../../config/supabase-client";
-import { Session } from "@supabase/supabase-js";
+import { StoreAdapter, supabaseClient } from "../../config/supabase-client";
+import { AuthError, Session } from "@supabase/supabase-js";
 import { useAlerts } from "react-native-paper-alerts";
 import { makeRedirectUri } from "expo-auth-session";
 import * as QueryParams from "expo-auth-session/build/QueryParams";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { ScrollView } from "react-native";
+import { AlertsMethods } from "react-native-paper-alerts/lib/typescript/type";
 
 WebBrowser.maybeCompleteAuthSession(); // required for web only
 const redirectTo = makeRedirectUri();
 
-const createSessionFromUrl = async (url: string) => {
+export const createSessionFromUrl = async (url: string,alerts: AlertsMethods ) => {
+  
   try {
-    const { params, errorCode } = QueryParams.getQueryParams(url);
+    const { params, errorCode,} = QueryParams.getQueryParams(url);
 
+      if(params.error){
+        alerts.alert('The address is already linked to a different user, please try another!')
+        throw new AuthError(params.error_description,+params.error_code,params.error_status)
+      }
     if (errorCode) throw new Error(errorCode);
+    const { access_token, refresh_token, provider_token } = params || {};
 
-    const { access_token, refresh_token } = params || {};
 
     if (!access_token) {
       console.error('Access token is missing from the URL');
       return;
+    }
+    if (!provider_token) {
+      console.error('Provider token is missing from the URL');
+      return;
+    }else{
+      StoreAdapter.setItem('provider_token', provider_token)
     }
 
     const { data, error } = await supabaseClient.auth.setSession({
@@ -47,13 +59,18 @@ const createSessionFromUrl = async (url: string) => {
   }
 };
 
-const performOAuth = async () => {
+export const performOAuth = async (alerts: AlertsMethods) => {
   try {
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo,
+        scopes: "https://www.googleapis.com/auth/calendar",
         skipBrowserRedirect: true,
+        queryParams:{
+          accessType:'offline',
+           prompt: 'consent'
+        }
       },
     });
 
@@ -63,7 +80,7 @@ const performOAuth = async () => {
       const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
 
       if (res.type === "success" && res.url) {
-        await createSessionFromUrl(res.url);
+        await createSessionFromUrl(res.url,alerts);
       } else {
         console.error('OAuth session failed:', res);
       }
@@ -89,11 +106,11 @@ export default function SignIn() {
   
 useEffect(() => {
   if (url) {
-    createSessionFromUrl(url).catch(err =>
+    createSessionFromUrl(url,alerts).catch(err =>
       console.error('Error in useURL effect:', err)
     );
   }
-}, [url]);
+}, [url,alerts]);
 
 useEffect(() => {
   supabaseClient.auth.getSession().then(({ data: { session } }) => {
@@ -136,13 +153,14 @@ useEffect(() => {
   async function signInWithEmail() {
     setLoading(true);
     try {
-      const { error } = await supabaseClient.auth.signInWithPassword({
+      const { error,data } = await supabaseClient.auth.signInWithPassword({
         email: email,
         password: password,
       });
   
       if (error) {
         alerts.alert(error.message);
+      }else{
       }
     } catch (err) {
       console.error('Sign-in error:', err);
@@ -196,7 +214,7 @@ useEffect(() => {
                 <Button
                   style={styles.googleButton}
                   buttonColor={theme.colors.primary}
-                  onPress={performOAuth}
+                  onPress={()=>performOAuth(alerts)}
                 >
                   {
                     <View style={styles.buttonContainer}>
@@ -293,7 +311,7 @@ useEffect(() => {
               <Button
                 style={styles.googleButton}
                 buttonColor={theme.colors.primary}
-                onPress={performOAuth}
+                onPress={()=>performOAuth(alerts)}
               >
                 {
                   <View style={styles.buttonContainer}>

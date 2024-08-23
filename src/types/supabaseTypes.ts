@@ -106,7 +106,7 @@ export type Database = {
           tickets_bought: number | null
           title: string | null
           updated_at: string | null
-          votes: number | null
+          votes: number
         }
         Insert: {
           begin_time?: string | null
@@ -126,7 +126,7 @@ export type Database = {
           tickets_bought?: number | null
           title?: string | null
           updated_at?: string | null
-          votes?: number | null
+          votes: number
         }
         Update: {
           begin_time?: string | null
@@ -146,7 +146,7 @@ export type Database = {
           tickets_bought?: number | null
           title?: string | null
           updated_at?: string | null
-          votes?: number | null
+          votes?: number
         }
         Relationships: [
           {
@@ -490,26 +490,26 @@ export type Database = {
       profiles_votes: {
         Row: {
           created_at: string
+          hide_event: boolean
           id: string
           save_event: boolean
           user_id: string
-          hide_event: boolean
           voted_upon: string
         }
         Insert: {
           created_at?: string
+          hide_event?: boolean
           id?: string
           save_event?: boolean
           user_id: string
-          hide_event?: boolean
           voted_upon: string
         }
         Update: {
           created_at?: string
+          hide_event?: boolean
           id?: string
           save_event?: boolean
           user_id?: string
-          hide_event?: boolean
           voted_upon?: string
         }
         Relationships: [

@@ -58,6 +58,7 @@ interface FormValues {
   ticketed: boolean;
   ticket_price: number;
   creator_id: string;
+  votes:number
 }
 
 export default function EventCreator() {
@@ -117,6 +118,7 @@ export default function EventCreator() {
         ticketed: RHForm.ticketed,
         ticket_price: Number(RHForm.ticketPrice),
         creator_id: user.id,
+        votes:0
       };
 
       let { error } = await supabaseClient.from("events").insert(SBform);
