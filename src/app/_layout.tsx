@@ -10,7 +10,7 @@ import {
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { AuthProvider } from "../hooks/Auth";
+import { AuthProvider } from "../utils/Auth";
 import { AlertsProvider } from "react-native-paper-alerts";
 import { useColorScheme } from "react-native";
 import merge from "deepmerge";

@@ -13,11 +13,11 @@ import type React from "../../node_modules/@types/react";
 import { enGB, registerTranslation } from "react-native-paper-dates";
 import { useAlerts } from "react-native-paper-alerts";
 import { supabaseClient } from "../config/supabase-client";
-import { useAuth } from "../hooks/Auth";
+import { useAuth } from "../utils/Auth";
 import DateTimePicker from "./event-form/DateTimePicker";
 import TicketPricePicker from "./event-form/TicketPricePicker";
 import LocationPicker from "./event-form/LocationPicker";
-import { downloadImage, uploadImage } from "@/hooks/imageUtils";
+import { downloadImage, uploadImage } from "@/utils/imageUtils";
 registerTranslation("en-GB", enGB);
 
 interface RHFormValues {

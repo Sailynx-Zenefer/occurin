@@ -1,6 +1,6 @@
 
 import Profile from "../../../components/Profile";
-import { useAuth } from "../../../hooks/Auth";
+import { useAuth } from "../../../utils/Auth";
 
 // ...
 

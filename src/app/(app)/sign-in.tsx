@@ -68,8 +68,6 @@ export const performOAuth = async (alerts: AlertsMethods) => {
         scopes: "https://www.googleapis.com/auth/calendar",
         skipBrowserRedirect: true,
         queryParams:{
-          accessType:'offline',
-           prompt: 'consent'
         }
       },
     });

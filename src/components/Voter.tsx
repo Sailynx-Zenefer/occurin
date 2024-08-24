@@ -1,5 +1,5 @@
-import { useAuth } from "@/hooks/Auth";
-import { fetchProfileVote, voteUpsert } from "@/hooks/profileVote";
+import { useAuth } from "@/utils/Auth";
+import { fetchProfileVote, voteUpsert } from "@/utils/profileVote";
 
 import { ToVoteOn } from "@/types/types";
 import { useFocusEffect } from "expo-router";

@@ -52,9 +52,20 @@ Saved events are located on the "Saved" tab. Here you may view your events in an
 
 Profile Settings are located on the "Profile" tab. Here you may set your username, full name, personal website and profile picture. In case you haven't logged in using a google account, you may link your google one here. lastly you may sign out here.
 
-## Running the app yourself
+## Running the app locally
 
-to run yourself....
+Due to the backend being hosted on supabase and the app using mapbox search and google calendar APIs it isn't possible to run this app locally unless you have the .env file with all of these variables:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_ANON_KEY=
+EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN=
+EXPO_PUBLIC_GOOGLE_CALENDAR_API=
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=
+```
+
+Please contact the developer of this project if you would like to run this project locally using the environment variables.
+If you had the variables you could run the project locally like this....
 
 - download the repo
 - install dependencies using...

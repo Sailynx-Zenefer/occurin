@@ -16,7 +16,7 @@ import {  useEffect, useState } from "react";
 import { router,} from "expo-router";
 
 import { EventInfo, RefetchType } from "../types/types";
-import { downloadImage } from "@/hooks/imageUtils";
+import { downloadImage } from "@/utils/imageUtils";
 
 interface EventCardProps {
   event: EventInfo;

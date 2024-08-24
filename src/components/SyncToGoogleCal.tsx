@@ -5,7 +5,7 @@ import { useAlerts } from "react-native-paper-alerts";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { useAuth } from "@/hooks/Auth";
+import { useAuth } from "@/utils/Auth";
 import { StoreAdapter } from "@/config/supabase-client";
 import { useState } from "react";
 import { AlertButton } from "react-native-paper-alerts/lib/typescript/type";

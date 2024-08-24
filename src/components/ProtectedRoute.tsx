@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { useAuth } from "../hooks/Auth";
+import { useAuth } from "../utils/Auth";
 
 const ProtectedRoute = ({ children }: any) => {
   const { user } = useAuth();

@@ -20,7 +20,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useEffect, useState } from "react";
 
 import { DayFilter, EventInfo, RefetchType } from "../types/types";
-import { downloadImage } from "@/hooks/imageUtils";
+import { downloadImage } from "@/utils/imageUtils";
 import EventCardModal from "./EventCardModal";
 
 interface EventCardProps {

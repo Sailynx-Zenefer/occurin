@@ -48,8 +48,8 @@ interface LocationPickerProps {
 }
 
 const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
-  // const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
-  const mapBoxToken = null;
+  const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
+  // const mapBoxToken = null; //disable this to stop mapbox
   const theme = useTheme()
   return (
     <>

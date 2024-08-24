@@ -1,6 +1,6 @@
 import { DayFilter, EventInfo, EventWeek, RefetchType } from "@/types/types";
 import EventCard from "./EventCard";
-import { useAuth } from "@/hooks/Auth";
+import { useAuth } from "@/utils/Auth";
 import { FlashList } from "@shopify/flash-list";
 import { StyleSheet, View } from "react-native";
 import { ActivityIndicator, Chip, Surface, Text } from "react-native-paper";

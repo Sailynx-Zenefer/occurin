@@ -160,8 +160,6 @@ export default function Profile({ session }: { session: Session }) {
   //         redirectTo,
   //         skipBrowserRedirect: true,
   //         queryParams:{
-  //           accessType:'offline',
-  //            prompt: 'consent'
   //         }
   //       },
   //     });
@@ -355,6 +353,7 @@ export default function Profile({ session }: { session: Session }) {
           </View>
           <View style={styles.verticallySpaced}>
             <TextInput
+            disabled={allowEdit}
               label="Website"
               value={website || ""}
               onChangeText={(text) => setWebsite(text)}
@@ -362,6 +361,7 @@ export default function Profile({ session }: { session: Session }) {
           </View>
           <View style={styles.verticallySpaced}>
             <TextInput
+            disabled={allowEdit}
               label="Full Name"
               value={fullName || ""}
               onChangeText={(text) => setFullName(text)}
@@ -373,7 +373,7 @@ export default function Profile({ session }: { session: Session }) {
               style={styles.button1}
               buttonColor={theme.colors.tertiary}
               textColor={theme.colors.onTertiary}
-              onPress={() => {}}
+              onPress={() => {setAllowEdit(!allowEdit)}}
               disabled={loading}
             >
               {loading ? "Editing ..." : "Edit"}

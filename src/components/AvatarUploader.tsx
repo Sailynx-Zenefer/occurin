@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {StyleSheet, View,Image } from 'react-native'
 import {Button, Surface, useTheme } from 'react-native-paper'
 import { useAlerts } from 'react-native-paper-alerts'
-import {downloadImage,uploadImage} from '@/hooks/imageUtils'
+import {downloadImage,uploadImage} from '@/utils/imageUtils'
 
 interface Props {
   size: number
