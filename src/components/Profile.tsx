@@ -194,25 +194,32 @@ export default function Profile({ session }: { session: Session }) {
           skipBrowserRedirect: true,
         },
       });
-
+  
       if (error) {
-        throw error}
+        if (error.status === 422) {
+          console.error("Identity already linked:", error);
 
-      if (data){
+          alerts.alert("This Google account is already linked to another user.");
+          WebBrowser.dismissAuthSession(); 
+          throw error;
+        }
       }
+  
       if (data?.url) {
         const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-
+  
         if (res.type === "success" && res.url) {
-          await createSessionFromUrl(res.url,alerts);
+          await createSessionFromUrl(res.url, alerts);
         } else {
           console.error("OAuth session failed:", res);
+          WebBrowser.dismissAuthSession();
         }
       } else {
         console.error("No URL returned for OAuth");
       }
     } catch (err) {
       console.error("Error during OAuth:", err);
+      WebBrowser.dismissAuthSession();
     }
   };
 
