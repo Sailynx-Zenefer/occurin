@@ -79,6 +79,7 @@ export const performOAuth = async (alerts: AlertsMethods) => {
 
       if (res.type === "success" && res.url) {
         await createSessionFromUrl(res.url,alerts);
+        WebBrowser.dismissBrowser()
       } else {
         console.error('OAuth session failed:', res);
       }
