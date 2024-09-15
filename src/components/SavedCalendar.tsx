@@ -11,6 +11,7 @@ import { useAuth } from "@/utils/Auth";
 import { useFocusEffect } from "expo-router";
 import { DayFilter, EventInfo } from "@/types/types";
 import SyncToGoogleCal from "./SyncToGoogleCal";
+import { useRefreshEvents } from "@/utils/RefreshEvents";
 
 const dateIncrement = (date: Date, days: number): Date => {
   var result = new Date(date);
@@ -20,6 +21,12 @@ const dateIncrement = (date: Date, days: number): Date => {
 const dateMod = (n: number) => -((n - 1) % 8);
 
 const SavedCalendar = () => {
+  const {
+    newEventLoading,
+    setNewEventLoading,
+    savedEventLoading,
+    setSavedEventLoading,
+  } = useRefreshEvents();
   const { user } = useAuth();
   const {
     hasNextPage,
@@ -33,11 +40,15 @@ const SavedCalendar = () => {
 
   const [eventsToSync,setEventsToSync] = useState<EventInfo[]>([])
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (newEventLoading) {
+      setNewEventLoading(false)
       refetch()
-    }, [refetch])
-  );
+    }else if (savedEventLoading){
+      setSavedEventLoading(false)
+      refetch()
+    }
+  }, [newEventLoading,savedEventLoading,refetch,setNewEventLoading,setSavedEventLoading]);
 
   const [dayFilter,setDayFilter]= useState<DayFilter>({
     Mon: true,

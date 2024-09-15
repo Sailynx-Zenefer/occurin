@@ -113,14 +113,15 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
                 }}
                 onRetrieveSBRR={({
                   features,
-                  features: [name_preferred, place_formatted, coordinates],
+                  features: [properties, coordinates],
                 }) => {
                   if (features) {
+                    console.log(features)
                     try {
-                      if (name_preferred)
-                        setValue("location.name", `${JSON.stringify(name_preferred)}`);
-                      if (place_formatted)
-                        setValue("location.address", `${JSON.stringify(place_formatted)}`);
+                      if (properties.properties.name_preferred)
+                        setValue("location.name", `${JSON.stringify(properties.properties.name_preferred)}`);
+                      if (properties.properties.place_formatted)
+                        setValue("location.address", `${JSON.stringify(properties.properties.place_formatted)}`);
                       if (coordinates)
                         setValue("location.long", coordinates[0] || 0);
                       setValue("location.lat", coordinates[1] || 0);

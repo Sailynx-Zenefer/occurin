@@ -31,18 +31,18 @@ const fetchNextDate = async (
         .gte("begin_time", lastDate.toISOString())
         .order("begin_time", { ascending: true })
         .limit(1)
-        .single();
-      if (error ) {
-        throw error;
-      }
-
-      if (data && data.begin_time) {
-        return new Date(data.begin_time);
-      }
-
-      return null;
+        if (error) {
+          if (error.code === 'PGRST116'){
+            return null
+          }else{
+            console.log(error)
+            throw error}
+        }
+      if (data && data.length > 0 && data[0].begin_time) {
+        return new Date(data[0].begin_time);
+      }else{return null}
     }
-  }
+  }else{
   const { data, error, status } = await supabaseClient
     .from("events")
     .select(
@@ -52,17 +52,20 @@ const fetchNextDate = async (
     .gte("begin_time", lastDate.toISOString())
     .order("begin_time", { ascending: true })
     .limit(1)
-    .single();
+    ;
 
-  if (error ) {
-    throw error;
-  }
-
-  if (data && data.begin_time) {
-    return new Date(data.begin_time);
-  }
-
-  return null;
+    if (error) {
+      if (error.code === 'PGRST116'){
+        return null
+      }else{
+        console.log(error)
+        throw error}
+    }
+  if (data && data.length > 0 && data[0].begin_time) {
+    return new Date(data[0].begin_time);
+  }else{
+    return null;
+  }}
 };
 
 const fetchEventWeekSB = async (
@@ -105,7 +108,11 @@ const fetchEventWeekSB = async (
         .eq("profiles_votes.user_id", user.id)
         .eq("profiles_votes.save_event", true);
       if (error) {
-        throw error;
+        if (error.code === 'PGRST116'){
+          return null
+        }else{
+          console.log(error)
+          throw error}
       }
 
       const eventWeek = data || [];
@@ -114,9 +121,9 @@ const fetchEventWeekSB = async (
         weekBeginDate,
         nextWeekBeginDate,
       };
-    }
+    }else{return null}
   }
-  {
+  else {
     const { data, error, status } = await supabaseClient
       .from("events")
       .select(
@@ -139,7 +146,10 @@ const fetchEventWeekSB = async (
       .lt("begin_time", nextWeekBeginDate.toISOString())
       .order("begin_time", { ascending: true });
     if (error) {
-      throw error;
+      if (error.code === 'PGRST116'){
+        return null
+      }else{throw error}
+      
     }
 
     const eventWeek = data || [];
@@ -169,11 +179,14 @@ export const fetchEventWeek = async (
       }
       return await fetchEventWeekSB(nextDate, options, user);
     } catch (error) {
-      console.error("Error fetching event week:", error);
+      if (error.code === 'PGRST116'){
+        return null
+      }else{
+      // console.error("Error fetching event week:", error);
       throw error;
+      }
     }
-  }
-  return null;
+  }else{return null}
 };
 
 const useEventWeek = ({ saved, tabName }: EventWeekOptions, user: User) => {
@@ -195,11 +208,10 @@ const useEventWeek = ({ saved, tabName }: EventWeekOptions, user: User) => {
       fetchEventWeek(pageParam, { saved, tabName }, user),
     initialPageParam: today,
     getNextPageParam: (lastPage, lastPageParam) => {
-      if (!lastPage) {
-        return null;
-      } else {
-        return lastPage.nextWeekBeginDate;
+      if (!lastPage || !lastPage.nextWeekBeginDate) {
+        return null; 
       }
+      return lastPage.nextWeekBeginDate;
     },
   });
 

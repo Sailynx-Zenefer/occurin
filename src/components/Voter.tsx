@@ -6,6 +6,7 @@ import { useFocusEffect } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet,} from "react-native";
 import { IconButton,Surface,Text,useTheme } from "react-native-paper";
+import { useRefreshEvents } from "@/utils/RefreshEvents";
 // import {}?
 interface VoterProps {
   toVoteOn: ToVoteOn;
@@ -22,6 +23,9 @@ type ProfileVote = {
 };
 
 const Voter = ({ toVoteOn, setToVoteOn, setEventVisible, tabName}: VoterProps): React.JSX.Element => {
+  const {
+    setSavedEventLoading,
+  } = useRefreshEvents();
   const { user } = useAuth();
   const theme = useTheme();
   //resets state because of flashlist recycling
@@ -82,6 +86,7 @@ const Voter = ({ toVoteOn, setToVoteOn, setEventVisible, tabName}: VoterProps): 
     }
     setProfileVote(newState);
     upsertProfileVote(oldState,newState);
+    setSavedEventLoading(true)
   };
 
   useEffect(() => {

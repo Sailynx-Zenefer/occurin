@@ -33,17 +33,14 @@ export const createSessionFromUrl = async (url: string,alerts: AlertsMethods ) =
       }
     if (errorCode) throw new Error(errorCode);
     const { access_token, refresh_token, provider_token } = params || {};
-
-
-    if (!access_token) {
+    if (access_token && provider_token){
+      StoreAdapter.setItem('provider_token', provider_token)
+    }else if (!access_token) {
       console.error('Access token is missing from the URL');
       return;
-    }
-    if (!provider_token) {
+    }else if (!provider_token) {
       console.error('Provider token is missing from the URL');
       return;
-    }else{
-      StoreAdapter.setItem('provider_token', provider_token)
     }
 
     const { data, error } = await supabaseClient.auth.setSession({
@@ -51,11 +48,14 @@ export const createSessionFromUrl = async (url: string,alerts: AlertsMethods ) =
       refresh_token,
     });
 
-    if (error) throw error;
+    if (error){
+      console.log(error)
+      throw error;
+    }
 
     return data.session;
   } catch (err) {
-    console.error('Error creating session from URL:', err);
+    // console.log('Error creating session from URL:', err);
   }
 };
 

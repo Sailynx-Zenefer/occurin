@@ -1,4 +1,3 @@
-
 import { supabaseClient } from "../config/supabase-client";
 import { PostgrestError, User } from "@supabase/supabase-js";
 import { ProfileVote, ToVoteOn } from "@/types/types";
@@ -63,14 +62,16 @@ export async function voteUpsert(
   return { error, voteVal };
 }
 
-
-
 export async function fetchProfileVote(
-  user : User,
-  toVoteOn : ToVoteOn, 
-  setProfileVote : React.Dispatch<React.SetStateAction<ProfileVote>>){
+  user: User,
+  toVoteOn: ToVoteOn,
+  setProfileVote: React.Dispatch<React.SetStateAction<ProfileVote>>,
+) {
   try {
-    const { error, profileVote : profileVoteFromSB } = await voteFetch(user, toVoteOn.id);
+    const { error, profileVote: profileVoteFromSB } = await voteFetch(
+      user,
+      toVoteOn.id,
+    );
     if (error) {
       throw error;
     }
@@ -82,7 +83,7 @@ export async function fetchProfileVote(
         save_event: vote.save_event,
         hide_event: vote.hide_event,
       });
-    }else if (profileVoteFromSB.length === 0) {
+    } else if (profileVoteFromSB.length === 0) {
       setProfileVote({
         user_id: user.id,
         voted_upon: toVoteOn.id,
@@ -93,4 +94,4 @@ export async function fetchProfileVote(
   } catch (error) {
     console.error("Error fetching profile vote:", error);
   }
-};
+}

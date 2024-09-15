@@ -1,5 +1,6 @@
 import { SafeAreaView, StyleSheet, View } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { FlashList } from "@shopify/flash-list";
 import WeekScrollCard from "./WeekScrollCard";
 import "react-native-url-polyfill/auto";
@@ -7,9 +8,9 @@ import useEventWeek from "@/utils/useEventWeek";
 import { ActivityIndicator, Button, Surface, Text } from "react-native-paper";
 import dayjs from "dayjs";
 import { useAuth } from "@/utils/Auth";
-import { useFocusEffect } from "expo-router";
 import DayChipFilter from "./DayChipFilter";
 import { DayFilter } from "@/types/types";
+import { useRefreshEvents } from "@/utils/RefreshEvents";
 
 const dateIncrement = (date: Date, days: number): Date => {
   var result = new Date(date);
@@ -18,9 +19,13 @@ const dateIncrement = (date: Date, days: number): Date => {
 };
 const dateMod = (n) => -((n - 1) % 8);
 
-
-
 const CalendarFeed = () => {
+  const {
+    newEventLoading,
+    setNewEventLoading,
+    savedEventLoading,
+    setSavedEventLoading,
+  } = useRefreshEvents();
   const { user } = useAuth();
   const {
     isFetching,
@@ -29,17 +34,25 @@ const CalendarFeed = () => {
     isLoading,
     eventWeeks,
     refetch,
-    status
+    status,
+  } = useEventWeek({ saved: false, tabName: "index" }, user);
 
-  } = useEventWeek({ saved: false, tabName:"index"}, user);
+  useEffect(() => {
+    if (status === "success") {
+    }
+  }, [status]);
 
-  useEffect(()=>{
-    if (status === "success"){
+  useEffect(() => {
+    if (newEventLoading) {
+      setNewEventLoading(false)
+      refetch()
+    }else if (savedEventLoading){
+      setSavedEventLoading(false)
+      refetch()
+    }
+  }, [newEventLoading,savedEventLoading,refetch,setNewEventLoading,setSavedEventLoading]);
 
-    }},[status]
-  )
-
-  const [dayFilter,setDayFilter]= useState<DayFilter>({
+  const [dayFilter, setDayFilter] = useState<DayFilter>({
     Mon: true,
     Tue: true,
     Wed: true,
@@ -47,48 +60,67 @@ const CalendarFeed = () => {
     Fri: true,
     Sat: true,
     Sun: true,
-  })
-
+  });
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.blurContainer}>
-        <DayChipFilter dayFilter={dayFilter} setDayFilter={setDayFilter}/>
+        <DayChipFilter dayFilter={dayFilter} setDayFilter={setDayFilter} />
       </View>
       <FlashList
         data={eventWeeks}
         renderItem={(data) => {
           if (!data || !data.item || data.item.eventWeek.length === 0) {
-            return null; 
+            return null;
           }
 
-          return(<WeekScrollCard 
-          eventWeek={data.item.eventWeek} 
-          refetch={refetch} isFetching={isFetching} 
-          tabName={"index"}
-          dayFilter={dayFilter}/>)
+          return (
+            <WeekScrollCard
+              eventWeek={data.item.eventWeek}
+              refetch={refetch}
+              isFetching={isFetching}
+              tabName={"index"}
+              dayFilter={dayFilter}
+            />
+          );
         }}
         numColumns={1}
         estimatedItemSize={200 * 200}
-        estimatedListSize={ {height:1000, width:700} }
+        estimatedListSize={{ height: 1000, width: 700 }}
         refreshing={isFetching}
-        extraData={[eventWeeks,isFetching,status]}
-        keyExtractor={
-          (item,index) => item ? `${index}index${item.eventWeek.toString()}` : `${index}-null`}
+        extraData={[eventWeeks, isFetching, status]}
+        keyExtractor={(item, index) =>
+          item ? `${index}index${item.eventWeek.toString()}` : `${index}-null`
+        }
         onRefresh={fetchNextPage}
-        onEndReached={() => (hasNextPage ? !isFetching && fetchNextPage() : refetch)}
+        onEndReached={() => {
+          if (hasNextPage && !isFetching) {
+            fetchNextPage();
+          }
+        }}
         onEndReachedThreshold={0.1}
         ListHeaderComponentStyle={styles.headerStyle}
         ListHeaderComponent={() => <View></View>}
-        ListFooterComponent={() => 
+        ListFooterComponent={() => (
           <>
-          {isLoading ? <ActivityIndicator style={styles.activityIndicator} size={"large"}/> : <></>}
-        <View style={styles.footerStyle}>
-        </View>
-        </>}
-        ItemSeparatorComponent={({trailingItem }) => {
-          if (!trailingItem || !trailingItem.eventWeek || trailingItem.eventWeek.length === 0) {
-            return null; 
+            {isLoading ? (
+              <ActivityIndicator
+                style={styles.activityIndicator}
+                size={"large"}
+              />
+            ) : (
+              <></>
+            )}
+            <View style={styles.footerStyle}></View>
+          </>
+        )}
+        ItemSeparatorComponent={({ trailingItem }) => {
+          if (
+            !trailingItem ||
+            !trailingItem.eventWeek ||
+            trailingItem.eventWeek.length === 0
+          ) {
+            return null;
           }
           const firstEventTime = new Date(trailingItem.eventWeek[0].begin_time);
           const weekBeginDate = dateIncrement(
@@ -100,7 +132,6 @@ const CalendarFeed = () => {
           );
           return (
             <Surface style={styles.surfaceStyle} elevation={1}>
-              
               <Text style={styles.textStyle}>{formatBeginDate}</Text>
             </Surface>
           );

@@ -18,6 +18,7 @@ import DateTimePicker from "./event-form/DateTimePicker";
 import TicketPricePicker from "./event-form/TicketPricePicker";
 import LocationPicker from "./event-form/LocationPicker";
 import { downloadImage, uploadImage } from "@/utils/imageUtils";
+import { useRefreshEvents } from "@/utils/RefreshEvents";
 registerTranslation("en-GB", enGB);
 
 interface RHFormValues {
@@ -60,8 +61,32 @@ interface FormValues {
   creator_id: string;
   votes:number
 }
-
+const defaultForm = {
+  mode: "onBlur",
+  defaultValues: {
+    eventName: "",
+    eventDescription: "",
+    eventBeginDate: new Date(),
+    eventFinishDate: new Date(),
+    imgUrl: "",
+    inPerson: true,
+    location: {
+      name: "",
+      lat: 0,
+      long: 0,
+      address: "",
+      _option: {
+        label: "",
+        value: 0,
+        description: "",
+      },
+    },
+    ticketed: false,
+    ticketPrice: 0,
+  },
+}
 export default function EventCreator() {
+  const {setNewEventLoading} = useRefreshEvents()
   const [loading, setLoading] = useState(true);
   const [imgUploading, setImgUploading] = useState(false);
 
@@ -74,6 +99,7 @@ export default function EventCreator() {
     formState: { errors },
     setValue,
     getValues,
+    reset
   } = useForm<RHFormValues>({
     mode: "onBlur",
     defaultValues: {
@@ -101,6 +127,7 @@ export default function EventCreator() {
 
   const onSubmit = async (RHForm: RHFormValues) => {
     alerts.alert("Event Created!");
+    setNewEventLoading(true)
     try {
       setLoading(true);
       if (!user) throw new Error("No user on the session!");
@@ -133,9 +160,11 @@ export default function EventCreator() {
       }
     } finally {
       setLoading(false);
+      reset()
     }
   };
   const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
+
   useEffect(() => {
     if (eventImageUrl)
       downloadImage(eventImageUrl, setEventImageUrl, "event_imgs",);

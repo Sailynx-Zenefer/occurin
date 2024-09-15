@@ -136,6 +136,8 @@ export default function Profile({ session }: { session: Session }) {
               data.identities.find((identity) => identity.provider === "google")
                 .identity_data["email"],
             );
+          }else{
+            setHasProviderToken(false)
           }
         }
       } catch (error) {
@@ -193,8 +195,11 @@ export default function Profile({ session }: { session: Session }) {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error}
 
+      if (data){
+      }
       if (data?.url) {
         const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
 

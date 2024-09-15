@@ -4,7 +4,7 @@ import SavedCalendar from "@/components/SavedCalendar";
 
 const SavedCalendarView = () => {
   return <>
-  <SavedCalendar/>
+  <SavedCalendar />
   </>
 }
 

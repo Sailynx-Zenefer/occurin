@@ -126,7 +126,7 @@ setEventsToSync
 
   return (
     <>
-      {eventVisibleFilter && eventVisible && (
+      {(eventVisibleFilter && eventVisible || tabName === "index") && (
         <>
           <Surface elevation={1}>
             <Chip style={dynmStyles.day}>
