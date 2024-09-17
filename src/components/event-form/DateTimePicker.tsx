@@ -1,5 +1,11 @@
 import { useCallback, useState } from "react";
-import { Control, Controller, FieldErrors, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  UseFormGetValues,
+  UseFormSetValue,
+} from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import { Button, Divider, Surface, Text } from "react-native-paper";
 import { DatePickerInput, TimePickerModal } from "react-native-paper-dates";
@@ -36,14 +42,18 @@ interface RHFormValues {
 }
 
 interface DateTimePickerProps {
-  getValues : UseFormGetValues<RHFormValues>
-  setValue : UseFormSetValue<RHFormValues>
-  control : Control<RHFormValues, any>
-  errors : FieldErrors<RHFormValues>
+  getValues: UseFormGetValues<RHFormValues>;
+  setValue: UseFormSetValue<RHFormValues>;
+  control: Control<RHFormValues, any>;
+  errors: FieldErrors<RHFormValues>;
 }
 
-const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerProps) => {
-
+const DateTimePicker = ({
+  getValues,
+  setValue,
+  control,
+  errors,
+}: DateTimePickerProps) => {
   function formatTime(date: Date) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
@@ -64,28 +74,58 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
     ({ hours, minutes }: TimePickerOutput) => {
       if (fieldName === "eventBeginDate") {
         setVisibleBegin(false);
-        const newDate = getValues("eventBeginDate") as Date;
-        newDate.setHours(hours);
-        newDate.setMinutes(minutes);
-        setValue("eventBeginDate", newDate);
+        const newDateBegin = getValues("eventBeginDate") as Date;
+        const dateFinish = getValues("eventFinishDate") as Date;
+        newDateBegin.setHours(hours);
+        newDateBegin.setMinutes(minutes);
+        if(newDateBegin > dateFinish){
+          setValue("eventFinishDate", newDateBegin)
+        }
+        setValue("eventBeginDate", newDateBegin);
       } else {
         setVisibleFinish(false);
-        const newDate = getValues("eventFinishDate") as Date;
-        newDate.setHours(hours);
-        newDate.setMinutes(minutes);
+        const dateBegin = getValues("eventBeginDate") as Date;
+        const newDateFinish = getValues("eventFinishDate") as Date;
+        newDateFinish.setHours(hours);
+        newDateFinish.setMinutes(minutes);
+        if(dateBegin > newDateFinish){
+          setValue("eventBeginDate", newDateFinish)
+        }
+        setValue("eventFinishDate", newDateFinish);
+      }
+    };
+    const datePickOnChangeBegin =
+    (newDate: Date | undefined) => {
+      if (newDate) {
+        const newMonthYearBegin = getValues("eventBeginDate") as Date;
+        const newMonthYearFinish = getValues("eventFinishDate") as Date;
+        if (newMonthYearBegin > newMonthYearFinish){
+          newMonthYearFinish.setFullYear(newDate.getFullYear());
+          newMonthYearFinish.setMonth(newDate.getMonth(), newDate.getDate());
+          setValue("eventFinishDate", newDate);
+        }
+        newMonthYearBegin.setFullYear(newDate.getFullYear());
+        newMonthYearBegin.setMonth(newDate.getMonth(), newDate.getDate());
+        setValue("eventBeginDate", newDate);
+      }
+    };
+
+    const datePickOnChangeFinish =
+    (newDate: Date | undefined) => {
+      if (newDate) {
+        const newMonthYearBegin = getValues("eventBeginDate") as Date;
+        const newMonthYearFinish = getValues("eventFinishDate") as Date;
+        if (newMonthYearBegin >= newMonthYearFinish){
+          newMonthYearBegin.setFullYear(newDate.getFullYear());
+          newMonthYearBegin.setMonth(newDate.getMonth(), newDate.getDate());
+          setValue("eventBeginDate", newDate);
+        }
+        newMonthYearFinish.setFullYear(newDate.getFullYear());
+        newMonthYearFinish.setMonth(newDate.getMonth(), newDate.getDate());
         setValue("eventFinishDate", newDate);
       }
     };
 
-  const datePickOnChange =
-    (fieldName: keyof RHFormValues) => (newDate: Date | undefined) => {
-      if (newDate) {
-        const newMonthYear = getValues(fieldName) as Date;
-        newMonthYear.setFullYear(newDate.getFullYear());
-        newMonthYear.setMonth(newDate.getMonth(), newDate.getDate());
-        setValue("eventFinishDate", newDate);
-      }
-    };
 
   return (
     <Surface style={styles.datePickers} elevation={3}>
@@ -96,10 +136,10 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
         }}
         render={({ field }) => (
           <>
-            <View>
+            <View style={styles.labelButton}>
               <Text style={styles.inputLabel}>Event Start:</Text>
               <Button
-              style={styles.buttonStyle}
+                style={styles.buttonStyle}
                 onPress={() => setVisibleBegin(true)}
                 uppercase={false}
                 mode="outlined"
@@ -117,7 +157,10 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
               locale="en-GB"
               label=""
               value={field.value}
-              onChange={datePickOnChange("eventBeginDate")}
+              onChange={(newDate)=>{
+                field.onChange(newDate)
+                datePickOnChangeBegin(newDate)
+              }}
               inputMode="start"
             />
           </>
@@ -133,33 +176,35 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
           required: true,
         }}
         render={({ field }) => (
-          <View>
-            <Text style={styles.inputLabel} >Event end:</Text>
+          <>
+          <View style={styles.labelButton}>
+            <Text style={styles.inputLabel}>Event end:</Text>
             <Button
-            style={styles.buttonStyle}
+              style={styles.buttonStyle}
               onPress={() => setVisibleFinish(true)}
               uppercase={false}
               mode="outlined"
             >
               {formatTime(field.value)}
             </Button>
+            </View>
             <TimePickerModal
               visible={visibleFinish}
               onDismiss={onDismissFinish}
               onConfirm={timePickOnConfirm("eventFinishDate")}
             />
-            
             <DatePickerInput
               mode="outlined"
               locale="en-GB"
               label=""
               value={field.value}
-              onChange={datePickOnChange("eventFinishDate")}
+              onChange={(newDate)=>{
+                field.onChange(newDate)
+                datePickOnChangeFinish(newDate)
+              }}
               inputMode="start"
             />
-            
-          </View>
-
+          </>
         )}
         name="eventFinishDate"
       />
@@ -168,34 +213,39 @@ const DateTimePicker = ({getValues, setValue,control,errors} : DateTimePickerPro
         <Text style={styles.errorText}>Please select an event start date.</Text>
       )}
     </Surface>
-    
   );
 };
 
 const styles = StyleSheet.create({
-  inputLabel:{
-    margin:5
+  inputLabel: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  buttonStyle: {
+    marginVertical: 5,
+    marginHorizontal: 5,
+  },
+  labelButton: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
   },
   datePickers: {
-    margin:5,
-    padding:20,
-    borderRadius:10,
-    flex:1,
+    margin: 5,
+    padding: 20,
+    borderRadius: 10,
+    flex: 1,
     display: "flex",
     alignItems: "flex-start",
     flexDirection: "column",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    // padding: 5,
-  },
-  buttonStyle:{
-    marginVertical:5
   },
   errorText: {
     color: "red",
     marginVertical: 5,
+    marginHorizontal: "auto",
   },
 });
-
 
 export default DateTimePicker;

@@ -25,6 +25,7 @@ const redirectTo = makeRedirectUri();
 export const createSessionFromUrl = async (url: string,alerts: AlertsMethods ) => {
   
   try {
+    
     const { params, errorCode,} = QueryParams.getQueryParams(url);
 
       if(params.error){
@@ -36,7 +37,7 @@ export const createSessionFromUrl = async (url: string,alerts: AlertsMethods ) =
     if (access_token && provider_token){
       StoreAdapter.setItem('provider_token', provider_token)
     }else if (!access_token) {
-      console.error('Access token is missing from the URL');
+      // console.error('Access token is missing from the URL');
       return;
     }else if (!provider_token) {
       console.error('Provider token is missing from the URL');

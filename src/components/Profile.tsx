@@ -197,7 +197,6 @@ export default function Profile({ session }: { session: Session }) {
   
       if (error) {
         if (error.status === 422) {
-          console.error("Identity already linked:", error);
 
           alerts.alert("This Google account is already linked to another user.");
           WebBrowser.dismissAuthSession(); 
