@@ -166,7 +166,7 @@ setEventsToSync
                 size={35}
                 source={{ uri: avatarUrl }}
               />
-              <Voter toVoteOn={eventState} setToVoteOn={setEventState} setEventVisible={setEventVisible} tabName={tabName}/>
+              <Voter user={session.user}toVoteOn={eventState} setToVoteOn={setEventState} setEventVisible={setEventVisible} tabName={tabName}/>
             </Card.Actions>
           </Card>
           <Portal>
@@ -175,7 +175,7 @@ setEventsToSync
               onDismiss={hideModal}
               contentContainerStyle={styles.containerStyle}
             >
-              <EventCardModal event={event} session={session} setEventVisible={setEventVisible} tabName={tabName}/>
+              <EventCardModal eventState={eventState} setEventState={setEventState} session={session} setEventVisible={setEventVisible} tabName={tabName}/>
             </Modal>
           </Portal>
         </>

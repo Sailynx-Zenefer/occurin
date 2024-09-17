@@ -95,6 +95,7 @@ export type Database = {
           creator_id: string | null
           description: string | null
           finish_time: string | null
+          full_address: string | null
           id: string
           img_url: string | null
           in_person: boolean | null
@@ -115,6 +116,7 @@ export type Database = {
           creator_id?: string | null
           description?: string | null
           finish_time?: string | null
+          full_address?: string | null
           id?: string
           img_url?: string | null
           in_person?: boolean | null
@@ -135,6 +137,7 @@ export type Database = {
           creator_id?: string | null
           description?: string | null
           finish_time?: string | null
+          full_address?: string | null
           id?: string
           img_url?: string | null
           in_person?: boolean | null

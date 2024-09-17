@@ -19,6 +19,7 @@ type OptionType = {
   label: string;
   value: number;
   description: string;
+  key: string;
 };
 
 type RHFLocation = {
@@ -48,8 +49,8 @@ interface LocationPickerProps {
 }
 
 const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
-  const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
-  // const mapBoxToken = null; //disable this to stop mapbox
+  // const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
+  const mapBoxToken = null; //enable this to stop mapbox
   const theme = useTheme()
   return (
     <>
@@ -107,24 +108,25 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
                     try {
                       setValue("location._option.label", searchText);
                     } catch (error) {
-                      console.error("setValue error:", error);
+                      console.error("setValue location._option.label error:", error);
                     }
                   }
                 }}
                 onRetrieveSBRR={({
-                  features,
-                  features: [properties, coordinates],
+                  features : featArray,
                 }) => {
-                  if (features) {
+                  
+                  if (featArray.length > 0) {
+                    const features = featArray[0]
                     console.log(features)
                     try {
-                      if (properties.properties.name_preferred)
-                        setValue("location.name", `${JSON.stringify(properties.properties.name_preferred)}`);
-                      if (properties.properties.place_formatted)
-                        setValue("location.address", `${JSON.stringify(properties.properties.place_formatted)}`);
-                      if (coordinates)
-                        setValue("location.long", coordinates[0] || 0);
-                      setValue("location.lat", coordinates[1] || 0);
+                      if (features.properties.name_preferred)
+                        setValue("location.name", `${JSON.stringify(features.properties.name_preferred)}`);
+                      if (features.properties.full_address)
+                        setValue("location.address", `${JSON.stringify(features.properties.place_formatted)}`);
+                      if (features.properties.coordinates)
+                        setValue("location.long", features.properties.coordinates[0] || 0);
+                        setValue("location.lat", features.properties.coordinates[1] || 0);
                     } catch (error) {
                       console.error("setValue error:", error);
                     }
@@ -144,7 +146,7 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
                   color:theme.colors.error,
                   borderWidth:1,
                   borderColor:theme.colors.error}}>
-                  {`Mapbox Search is disabled or free sessions have been used up.\n`}
+                  {`Mapbox Search is disabled in this version for stability purposes.\n`}
                   {`Please enter location manually:`}
                 </Text>
                 <View>

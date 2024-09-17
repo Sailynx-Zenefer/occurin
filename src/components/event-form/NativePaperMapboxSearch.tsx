@@ -11,6 +11,7 @@ import {
   SearchBoxRetrieveResponse,
   SearchBoxSuggestionResponse,
 } from "@mapbox/search-js-core";
+import { randomUUID } from "crypto";
 
 export interface NativeSearchBoxProps {
   accessToken: string;
@@ -29,6 +30,7 @@ type OptionType = {
   label: string;
   value: number;
   description: string;
+  key: string;
 };
 
 export default function NativePaperMapboxSearch({
@@ -53,6 +55,7 @@ export default function NativePaperMapboxSearch({
       label: option.name,
       value: id,
       description: option.place_formatted,
+      key: `option-${id}-${option.name}`,
     }));
   };
 
@@ -75,6 +78,7 @@ export default function NativePaperMapboxSearch({
                     label: "",
                     value: 0,
                     description: "",
+                    key: `option-${randomUUID}-ZERO`
                   };
             const newOptions = calculateOptions(suggestionRes);
             return [searchText, ...newOptions];
@@ -164,7 +168,10 @@ export default function NativePaperMapboxSearch({
             }
           }}
           value={selectedOption}
-          options={autocompleteOptions}
+          options={autocompleteOptions.map(option => ({
+            ...option,
+            key: option.key
+          }))}
           inputProps={{
             placeholder: placeholder,
             onChangeText: handleTextChange,

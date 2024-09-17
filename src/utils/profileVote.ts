@@ -63,7 +63,7 @@ export async function voteUpsert(
 }
 
 export async function fetchProfileVote(
-  user: User,
+  user: User | null,
   toVoteOn: ToVoteOn,
   setProfileVote: React.Dispatch<React.SetStateAction<ProfileVote>>,
 ) {
@@ -75,22 +75,22 @@ export async function fetchProfileVote(
     if (error) {
       throw error;
     }
-    if (profileVoteFromSB.length > 0) {
-      const vote = profileVoteFromSB[0];
-      setProfileVote({
-        user_id: vote.user_id,
-        voted_upon: vote.voted_upon,
-        save_event: vote.save_event,
-        hide_event: vote.hide_event,
-      });
-    } else if (profileVoteFromSB.length === 0) {
-      setProfileVote({
-        user_id: user.id,
-        voted_upon: toVoteOn.id,
-        save_event: false,
-        hide_event: false,
-      });
-    }
+      if (profileVoteFromSB.length > 0) {
+        const vote = profileVoteFromSB[0];
+        setProfileVote({
+          user_id: vote.user_id,
+          voted_upon: vote.voted_upon,
+          save_event: vote.save_event,
+          hide_event: vote.hide_event,
+        });
+      } else if (profileVoteFromSB.length === 0) {
+        setProfileVote({
+          user_id: user.id,
+          voted_upon: toVoteOn.id,
+          save_event: false,
+          hide_event: false,
+        });
+      }
   } catch (error) {
     console.error("Error fetching profile vote:", error);
   }

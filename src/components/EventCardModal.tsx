@@ -19,9 +19,10 @@ import { EventInfo, RefetchType } from "../types/types";
 import { downloadImage } from "@/utils/imageUtils";
 
 interface EventCardProps {
-  event: EventInfo;
   session: Session;
   setEventVisible:React.Dispatch<React.SetStateAction<boolean>>
+  eventState : EventInfo
+  setEventState: React.Dispatch<React.SetStateAction<EventInfo>>
   tabName : string
 }
 
@@ -29,12 +30,11 @@ interface EventCardProps {
 //   router.replace('/event-screen');
 // }
 
-const EventCardModal = ({ event, setEventVisible, tabName}: EventCardProps): React.JSX.Element => {
+const EventCardModal = ({ session, eventState : event, setEventState, setEventVisible, tabName}: EventCardProps): React.JSX.Element => {
   dayjs.extend(relativeTime);
-  const [eventState, setEventState] = useState<EventInfo>(event);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
-  const timeAndUserInfo = `Posted ${dayjs().to(dayjs(event.created_at))} by ${eventState.profiles.username}`;
+  const timeAndUserInfo = `Posted ${dayjs().to(dayjs(event.created_at))} by ${event.profiles.username}`;
   const theme = useTheme();
   const dynmStyles = StyleSheet.create({
     day: {
@@ -65,14 +65,14 @@ const EventCardModal = ({ event, setEventVisible, tabName}: EventCardProps): Rea
 
 
   useEffect(() => {
-    if (eventState.profiles.avatar_url)
-      downloadImage(eventState.profiles.avatar_url, setAvatarUrl, "avatars",);
-  }, [eventState.profiles]);
+    if (event.profiles.avatar_url)
+      downloadImage(event.profiles.avatar_url, setAvatarUrl, "avatars",);
+  }, [event.profiles]);
 
   useEffect(() => {
-    if (eventState.img_url)
-      downloadImage(eventState.img_url, setEventImageUrl, "event_imgs",);
-  }, [eventState.img_url]);
+    if (event.img_url)
+      downloadImage(event.img_url, setEventImageUrl, "event_imgs",);
+  }, [event.img_url]);
 
   return (
       <Card style={styles.card} elevation={3}>
@@ -105,6 +105,7 @@ const EventCardModal = ({ event, setEventVisible, tabName}: EventCardProps): Rea
             {`${event.description}
 
 Takes place at : ${event.location_name}
+${event.full_address}
 ${dayjs(event.begin_time).format('[Begins on ]dddd DD MMMM[ at ]hh:mm ')}
 ${dayjs(event.finish_time).format('[Ends on ]dddd DD MMMM[ at ]hh:mm ')}
 Tickets cost : £${event.ticket_price}
@@ -121,7 +122,7 @@ Tickets cost : £${event.ticket_price}
         <Text style={styles.cardTitle2}> {timeAndUserInfo}</Text>
         <Card.Actions style={styles.cardActions}>
           
-            <Voter toVoteOn={eventState} setToVoteOn={setEventState} setEventVisible={setEventVisible} tabName={tabName}/>
+            <Voter user={session.user} toVoteOn={event} setToVoteOn={setEventState} setEventVisible={setEventVisible} tabName={tabName}/>
             
         </Card.Actions>
       </Card>

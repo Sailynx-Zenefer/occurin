@@ -45,6 +45,7 @@ type OptionType = {
   label: string;
   value: number;
   description: string;
+  key: string;
 };
 interface FormValues {
   title: string;
@@ -54,6 +55,7 @@ interface FormValues {
   begin_time: string;
   finish_time: string;
   location_name: string;
+  full_address: string;
   location_lat: number;
   location_long: number;
   ticketed: boolean;
@@ -79,6 +81,7 @@ const defaultForm = {
         label: "",
         value: 0,
         description: "",
+        key:""
       },
     },
     ticketed: false,
@@ -118,6 +121,7 @@ export default function EventCreator() {
           label: "",
           value: 0,
           description: "",
+          key:""
         },
       },
       ticketed: false,
@@ -142,6 +146,7 @@ export default function EventCreator() {
         location_name: RHForm.location.name,
         location_lat: RHForm.location.lat,
         location_long: RHForm.location.long,
+        full_address: RHForm.location.address,
         ticketed: RHForm.ticketed,
         ticket_price: Number(RHForm.ticketPrice),
         creator_id: user.id,

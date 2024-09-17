@@ -7,8 +7,10 @@ import { useEffect, useRef, useState } from "react";
 import { StyleSheet,} from "react-native";
 import { IconButton,Surface,Text,useTheme } from "react-native-paper";
 import { useRefreshEvents } from "@/utils/RefreshEvents";
+import { User } from "@supabase/supabase-js";
 // import {}?
 interface VoterProps {
+  user: User;
   toVoteOn: ToVoteOn;
   setToVoteOn: React.Dispatch<React.SetStateAction<ToVoteOn>>;
   setEventVisible : React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,11 +24,10 @@ type ProfileVote = {
   hide_event: boolean | null;
 };
 
-const Voter = ({ toVoteOn, setToVoteOn, setEventVisible, tabName}: VoterProps): React.JSX.Element => {
+const Voter = ({ user,toVoteOn, setToVoteOn, setEventVisible, tabName}: VoterProps): React.JSX.Element => {
   const {
     setSavedEventLoading,
   } = useRefreshEvents();
-  const { user } = useAuth();
   const theme = useTheme();
   //resets state because of flashlist recycling
   const [profileVote, setProfileVote] = useState<ProfileVote>({
@@ -90,7 +91,7 @@ const Voter = ({ toVoteOn, setToVoteOn, setEventVisible, tabName}: VoterProps): 
   };
 
   useEffect(() => {
-    fetchProfileVote(user, toVoteOn, setProfileVote);
+    if (user){fetchProfileVote(user, toVoteOn, setProfileVote);}
   }, [toVoteOn.id, user, toVoteOn]);
 
   // useFocusEffect(() => {
