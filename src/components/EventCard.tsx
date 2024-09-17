@@ -51,7 +51,7 @@ setEventsToSync
   const [eventVisible, setEventVisible] = useState(true);
   const [eventVisibleFilter, setEventVisibleFilter] = useState(true);
   const dayShort = dayjs(event.begin_time).format("ddd")
-
+  
   const timeAndUserInfo = `Posted ${dayjs().to(dayjs(event.created_at))} by ${eventState.profiles.username}`;
   const eventDay = dayjs(event.begin_time).format("dddd D MMMM");
   const theme = useTheme();

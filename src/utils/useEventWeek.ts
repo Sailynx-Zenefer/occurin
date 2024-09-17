@@ -100,7 +100,8 @@ const fetchEventWeekSB = async (
      ticket_price,
      ticketed, title,
      updated_at,
-     votes`,
+     votes,
+     full_address`,
         )
         .gte("begin_time", weekBeginDate.toISOString())
         .lt("begin_time", nextWeekBeginDate.toISOString())
@@ -140,7 +141,8 @@ const fetchEventWeekSB = async (
      ticket_price,
      ticketed, title,
      updated_at,
-     votes`,
+     votes,
+     full_address`,
       )
       .gte("begin_time", weekBeginDate.toISOString())
       .lt("begin_time", nextWeekBeginDate.toISOString())

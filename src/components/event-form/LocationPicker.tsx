@@ -14,6 +14,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import NativePaperMapboxSearch from "./NativePaperMapboxSearch";
+import { useState } from "react";
 
 type OptionType = {
   label: string;
@@ -49,9 +50,10 @@ interface LocationPickerProps {
 }
 
 const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
-  // const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
-  const mapBoxToken = null; //enable this to stop mapbox
-  const theme = useTheme()
+  const mapBoxToken = process.env.EXPO_PUBLIC_MAPBOX_OCCURIN_TOKEN;
+  // const mapBoxToken = null; //enable this to stop mapbox
+  const theme = useTheme();
+  const [mapBoxUsed, setMapBoxUsed] = useState(false);
   return (
     <>
       <Controller
@@ -59,7 +61,9 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
         rules={{ maxLength: 100 }}
         render={({ field: { onChange, value } }) => (
           <>
-            <Text style={[styles.inputLabel,{marginVertical:10}]}>Does your event take place in person or is it online?</Text>
+            <Text style={[styles.inputLabel, { marginVertical: 10 }]}>
+              Does your event take place in person or is it online?
+            </Text>
             <SegmentedButtons
               value={String(value)}
               onValueChange={(newValue) =>
@@ -80,7 +84,7 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
         )}
         name="inPerson"
       />
-      <Divider style={{marginTop:20}}/>
+      <Divider style={{ marginTop: 20 }} />
       <Controller
         control={control}
         rules={{ maxLength: 100 }}
@@ -93,85 +97,139 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
             },
           },
         }) => (
-          <View >
-            <Text style={[styles.inputLabel,{marginVertical:10}]}>Where does your event take place?</Text>
-
-            {mapBoxToken ? (
-              <NativePaperMapboxSearch
-                accessToken={mapBoxToken}
-                options={{
-                  language: "en",
-                  country: "GB",
-                }}
-                onChangeTextAC={(searchText) => {
-                  if (searchText) {
-                    try {
-                      setValue("location._option.label", searchText);
-                    } catch (error) {
-                      console.error("setValue location._option.label error:", error);
+          <View>
+            <Text style={[styles.inputLabel, { marginVertical: 10 }]}>
+              Where does your event take place?
+            </Text>
+            <SegmentedButtons
+              value={String(mapBoxUsed)}
+              onValueChange={(newValue) =>
+                setMapBoxUsed(newValue === "true" ? true : false)
+              }
+              buttons={[
+                {
+                  value: "false",
+                  label: "Enter address manually ",
+                  style:{
+                    marginBottom: 10,
+                    marginHorizontal:0,
+                  },
+                  labelStyle:{fontSize:12},
+                },
+                {
+                  value: "true",
+                  label: "Search for address",
+                  style:{
+                    marginBottom: 10,
+                    marginHorizontal:0,
+                  },
+                  labelStyle:{fontSize:12},
+                },
+              ]}
+            />
+            {mapBoxUsed ? (
+              <>
+                <Text
+                  style={{
+                    flexDirection: "row",
+                    padding: 5,
+                    marginBottom:10,
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start",
+                    textAlign: "justify",
+                    color: theme.colors.error,
+                    borderWidth: 1,
+                    borderColor: theme.colors.error,
+                  }}
+                >
+                  {`Mapbox Search is an experimental extra feature.\n`+
+                  `Because there is no pre-existing react-native\n`+
+                  `mapbox-search implimentation, one had to be built\n`+
+                  `from scratch. Expect Instability`}
+                </Text>
+                <NativePaperMapboxSearch
+                  accessToken={mapBoxToken}
+                  options={{
+                    language: "en",
+                    country: "GB",
+                  }}
+                  onChangeTextAC={(searchText) => {
+                    if (searchText) {
+                      try {
+                        setValue("location._option.label", searchText);
+                      } catch (error) {
+                        console.error(
+                          "setValue location._option.label error:",
+                          error,
+                        );
+                      }
                     }
-                  }
-                }}
-                onRetrieveSBRR={({
-                  features : featArray,
-                }) => {
-                  
-                  if (featArray.length > 0) {
-                    const features = featArray[0]
-                    console.log(features)
-                    try {
-                      if (features.properties.name_preferred)
-                        setValue("location.name", `${JSON.stringify(features.properties.name_preferred)}`);
-                      if (features.properties.full_address)
-                        setValue("location.address", `${JSON.stringify(features.properties.place_formatted)}`);
-                      if (features.properties.coordinates)
-                        setValue("location.long", features.properties.coordinates[0] || 0);
-                        setValue("location.lat", features.properties.coordinates[1] || 0);
-                    } catch (error) {
-                      console.error("setValue error:", error);
+                  }}
+                  onRetrieveSBRR={({ features: featArray }) => {
+                    if (featArray.length > 0) {
+                      const features = featArray[0];
+                      try {
+                        if (features.properties.name_preferred)
+                          setValue(
+                            "location.name",
+                            `${JSON.stringify(features.properties.name_preferred)}`,
+                          );
+                        if (features.properties.full_address)
+                          setValue(
+                            "location.address",
+                            `${JSON.stringify(features.properties.place_formatted)}`,
+                          );
+                        if (features.properties.coordinates)
+                          setValue(
+                            "location.long",
+                            features.properties.coordinates[0] || 0,
+                          );
+                        setValue(
+                          "location.lat",
+                          features.properties.coordinates[1] || 0,
+                        );
+                      } catch (error) {
+                        console.error("setValue error:", error);
+                      }
                     }
-                  }
-                }}
-                optionTextValue={_option}
-                placeholder={"Search for locations"}
-              />
+                  }}
+                  optionTextValue={_option}
+                  placeholder={"Search for locations"}
+                />
+              </>
             ) : (
               <Surface elevation={3} style={styles.manualInput}>
-                <Text style={{
-                  flexDirection:"row",
-                  padding:5,
-                  alignItems:"flex-start",
-                  justifyContent:"flex-start",
-                  textAlign:"justify",
-                  color:theme.colors.error,
-                  borderWidth:1,
-                  borderColor:theme.colors.error}}>
-                  {`Mapbox Search is disabled in this version for stability purposes.\n`}
-                  {`Please enter location manually:`}
-                </Text>
                 <View>
                   <Text style={styles.inputLabel}>Location Name:</Text>
-                  <TextInput onChange={(name)=>{
-                    setValue("location.name", `${name}`);
-                  }}/>
+                  <TextInput
+                    onChange={(name) => {
+                      setValue("location.name", `${name}`);
+                    }}
+                  />
                 </View>
                 <View>
                   <Text>Location Address:</Text>
-                  <TextInput onChange={(address)=>{
-                    setValue("location.address", `${address}`);
-                  }}/>
+                  <TextInput
+                    onChange={(address) => {
+                      setValue("location.address", `${address}`);
+                    }}
+                  />
                 </View>
                 <View>
                   <Text>Location Longitude:</Text>
-                  <TextInput onChange={(long)=>{
-                    setValue("location.long", +`${long}`);
-                  }}/>
+                  <TextInput
+                    onChange={(long) => {
+                      setValue("location.long", +`${long}`);
+                    }}
+                  />
                 </View>
                 <View>
                   <Text>Location Latitude:</Text>
-                  <TextInput onChange={(lat)=>{
-                    setValue("location.lat", +`${lat}`);
-                  }}/>
+                  <TextInput
+                    onChange={(lat) => {
+                      setValue("location.lat", +`${lat}`);
+                    }}
+                  />
                 </View>
               </Surface>
             )}
@@ -187,12 +245,13 @@ const LocationPicker = ({ control, errors, setValue }: LocationPickerProps) => {
 };
 
 const styles = StyleSheet.create({
-  inputLabel:{
-    margin:5
+  inputLabel: {
+    margin: 5,
   },
-  manualInput:{
-    padding :10,
-    marginBottom:20,
+  manualInput: {
+    paddingHorizontal: 10,
+    paddingBottom:10,
+    marginBottom: 20,
   },
   datePickers: {
     margin: 10,

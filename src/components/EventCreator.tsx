@@ -217,7 +217,6 @@ export default function EventCreator() {
         />
         <Divider style={{margin:20}}/>
         <LocationPicker setValue={setValue} control={control} errors={errors} />
-        <Divider style={{margin:20}}/>
         <TicketPricePicker control={control} errors={errors} />
         <Divider style={{margin:20}}/>
 
@@ -335,7 +334,6 @@ const styles = StyleSheet.create({
     marginBottom:50,
   },
   textInput: {
-
     margin:10,
     // backgroundColor: "white",
     // borderStyle: "solid",

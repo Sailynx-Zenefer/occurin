@@ -71,8 +71,9 @@ const EventCardModal = ({ session, eventState : event, setEventState, setEventVi
 
   useEffect(() => {
     if (event.img_url)
+
       downloadImage(event.img_url, setEventImageUrl, "event_imgs",);
-  }, [event.img_url]);
+  }, [event.img_url,event]);
 
   return (
       <Card style={styles.card} elevation={3}>
